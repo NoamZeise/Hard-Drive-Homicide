@@ -7,6 +7,9 @@
 #endif
 #include <GLFW/glfw3.h>
 
+#ifndef GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#endif
 #include <glm/glm.hpp>
 
 #include <stdint.h>
@@ -19,6 +22,14 @@ struct QueueFamilies
 {
 	uint32_t graphicsPresentFamilyIndex;
 	VkQueue graphicsPresentQueue;
+};
+
+
+struct Base
+{
+	VkPhysicalDevice physicalDevice;
+	VkDevice device;
+	QueueFamilies queue;
 };
 
 struct FrameData

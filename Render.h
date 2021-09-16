@@ -6,6 +6,9 @@
 #define GLFW_INCLUDE_VULKAN
 #endif
 #include <GLFW/glfw3.h>
+#ifndef GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#endif
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -31,9 +34,7 @@ private:
 	GLFWwindow* mWindow;
 	VkInstance mInstance;
 	VkSurfaceKHR mSurface;
-	VkPhysicalDevice mPhysicalDevice;
-	VkDevice mDevice; //logical device
-	QueueFamilies mQueue;
+	Base mBase;
 	FrameData mFrame;
 	SwapChain mSwapchain;
 	VkRenderPass mRenderPass;

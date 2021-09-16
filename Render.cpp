@@ -9,25 +9,26 @@ Render::Render(GLFWwindow* window)
 #endif
 	if (glfwCreateWindowSurface(mInstance, mWindow, nullptr, &mSurface) != VK_SUCCESS)
 		throw std::runtime_error("failed to create window surface!");
-	initVulkan::device(mInstance, mPhysicalDevice, &mDevice, mSurface, &mQueue);
-	initVulkan::swapChain(mDevice, mPhysicalDevice, mSurface, &mSwapchain, mWindow, mQueue.graphicsPresentFamilyIndex);
-	initVulkan::renderPass(mDevice, &mRenderPass, mSwapchain);
-	initVulkan::framebuffers(mDevice, &mSwapchain, mRenderPass);
-	initVulkan::perFrameDescriptorSets(mDevice, &mFrameDescriptorSets, mSwapchain);
-	initVulkan::graphicsPipeline(mDevice, &mPipeline, mSwapchain, mRenderPass, mFrameDescriptorSets);
+	initVulkan::device(mInstance, mBase.physicalDevice, &mBase.device, mSurface, &mBase.queue);
+	initVulkan::swapChain(mBase.device, mBase.physicalDevice, mSurface, &mSwapchain, mWindow, mBase.queue.graphicsPresentFamilyIndex);
+	initVulkan::renderPass(mBase.device, &mRenderPass, mSwapchain);
+	initVulkan::framebuffers(mBase.device, &mSwapchain, mRenderPass);
+	initVulkan::perFrameDescriptorSets(mBase.device, &mFrameDescriptorSets, mSwapchain);
+	initVulkan::graphicsPipeline(mBase.device, &mPipeline, mSwapchain, mRenderPass, mFrameDescriptorSets);
+	initVulkan::graphicsPipeline(mBase.device, &mPipeline, mSwapchain, mRenderPass, mFrameDescriptorSets);
 	prepareDescriptorSets();
 	//create general command pool
 	VkCommandPoolCreateInfo commandPoolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-	commandPoolInfo.queueFamilyIndex = mQueue.graphicsPresentFamilyIndex;
+	commandPoolInfo.queueFamilyIndex = mBase.queue.graphicsPresentFamilyIndex;
 	commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	if (vkCreateCommandPool(mDevice, &commandPoolInfo, nullptr, &generalCommandPool) != VK_SUCCESS)
+	if (vkCreateCommandPool(mBase.device, &commandPoolInfo, nullptr, &generalCommandPool) != VK_SUCCESS)
 		throw std::runtime_error("failed to create command pool");
 	//create transfer command buffer
 	VkCommandBufferAllocateInfo commandBufferInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 	commandBufferInfo.commandPool = generalCommandPool;
 	commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	commandBufferInfo.commandBufferCount = 1;
-	if (vkAllocateCommandBuffers(mDevice, &commandBufferInfo, &transferCommandBuffer))
+	if (vkAllocateCommandBuffers(mBase.device, &commandBufferInfo, &transferCommandBuffer))
 		throw std::runtime_error("failed to allocate command buffer");
 	
 	loadDataToGpu();
@@ -41,17 +42,17 @@ Render::Render(GLFWwindow* window)
 
 Render::~Render()
 {
-	vkQueueWaitIdle(mQueue.graphicsPresentQueue);
+	vkQueueWaitIdle(mBase.queue.graphicsPresentQueue);
 
 	destroySwapchainComponents();
-	vkDestroyBuffer(mDevice, mMemory.vertexBuffer, nullptr);
-	vkDestroyBuffer(mDevice, mMemory.indexBuffer, nullptr);
-	vkFreeMemory(mDevice, mMemory.memory, nullptr);
-	vkDestroyBuffer(mDevice, mMemory.stagingBuffer, nullptr);
-	vkFreeMemory(mDevice, mMemory.stagingMemory, nullptr);
-	vkDestroyCommandPool(mDevice, generalCommandPool, nullptr);
-	initVulkan::destroySwapchain(&mSwapchain, mDevice);
-	vkDestroyDevice(mDevice, nullptr);
+	vkDestroyBuffer(mBase.device, mMemory.vertexBuffer, nullptr);
+	vkDestroyBuffer(mBase.device, mMemory.indexBuffer, nullptr);
+	vkFreeMemory(mBase.device, mMemory.memory, nullptr);
+	vkDestroyBuffer(mBase.device, mMemory.stagingBuffer, nullptr);
+	vkFreeMemory(mBase.device, mMemory.stagingMemory, nullptr);
+	vkDestroyCommandPool(mBase.device, generalCommandPool, nullptr);
+	initVulkan::destroySwapchain(&mSwapchain, mBase.device);
+	vkDestroyDevice(mBase.device, nullptr);
 	vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
 #ifndef NDEBUG
 	initVulkan::DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
@@ -69,26 +70,26 @@ void Render::loadDataToGpu()
 	stagingBufferInfo.size = vertexSize + indexSize;
 	stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	stagingBufferInfo.queueFamilyIndexCount = 1;
-	stagingBufferInfo.pQueueFamilyIndices = &mQueue.graphicsPresentFamilyIndex;
+	stagingBufferInfo.pQueueFamilyIndices = &mBase.queue.graphicsPresentFamilyIndex;
 	stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	if (vkCreateBuffer(mDevice, &stagingBufferInfo, nullptr, &mMemory.stagingBuffer) != VK_SUCCESS)
+	if (vkCreateBuffer(mBase.device, &stagingBufferInfo, nullptr, &mMemory.stagingBuffer) != VK_SUCCESS)
 		throw std::runtime_error("failed to create vertex buffer!");
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(mDevice, mMemory.stagingBuffer, &memRequirements);
+	vkGetBufferMemoryRequirements(mBase.device, mMemory.stagingBuffer, &memRequirements);
 
-	uint32_t memIndex = vkhelper::findMemoryIndex(mPhysicalDevice, memRequirements.memoryTypeBits,
+	uint32_t memIndex = vkhelper::findMemoryIndex(mBase.physicalDevice, memRequirements.memoryTypeBits,
 		(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT));
 	
 	VkMemoryAllocateInfo memInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	memInfo.allocationSize = memRequirements.size;
 	memInfo.memoryTypeIndex = memIndex;
-	if (vkAllocateMemory(mDevice, &memInfo, nullptr, &mMemory.stagingMemory) != VK_SUCCESS)
+	if (vkAllocateMemory(mBase.device, &memInfo, nullptr, &mMemory.stagingMemory) != VK_SUCCESS)
 		throw std::runtime_error("failed to allocate memory");
 
-	vkBindBufferMemory(mDevice, mMemory.stagingBuffer, mMemory.stagingMemory, 0);
+	vkBindBufferMemory(mBase.device, mMemory.stagingBuffer, mMemory.stagingMemory, 0);
 	
 	void* data;
-	vkMapMemory(mDevice, mMemory.stagingMemory, 0, memRequirements.size, 0, &data);
+	vkMapMemory(mBase.device, mMemory.stagingMemory, 0, memRequirements.size, 0, &data);
 	memcpy(data, quadVerts.data(), vertexSize);
 	memcpy(static_cast<char*>(data) + vertexSize, quadInds.data(), indexSize);
 }
@@ -102,35 +103,35 @@ void Render::copyDataToLocalGPUMemory()
 	vbufferInfo.size = vertexSize;
 	vbufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 	vbufferInfo.queueFamilyIndexCount = 1;
-	vbufferInfo.pQueueFamilyIndices = &mQueue.graphicsPresentFamilyIndex;
+	vbufferInfo.pQueueFamilyIndices = &mBase.queue.graphicsPresentFamilyIndex;
 	vbufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	if (vkCreateBuffer(mDevice, &vbufferInfo, nullptr, &mMemory.vertexBuffer) != VK_SUCCESS)
+	if (vkCreateBuffer(mBase.device, &vbufferInfo, nullptr, &mMemory.vertexBuffer) != VK_SUCCESS)
 		throw std::runtime_error("failed to create vertex buffer!");
 	VkMemoryRequirements vmemRequirements;
-	vkGetBufferMemoryRequirements(mDevice, mMemory.vertexBuffer, &vmemRequirements);
+	vkGetBufferMemoryRequirements(mBase.device, mMemory.vertexBuffer, &vmemRequirements);
 
 	VkBufferCreateInfo ibufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	ibufferInfo.size = indexSize;
 	ibufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 	ibufferInfo.queueFamilyIndexCount = 1;
-	ibufferInfo.pQueueFamilyIndices = &mQueue.graphicsPresentFamilyIndex;
+	ibufferInfo.pQueueFamilyIndices = &mBase.queue.graphicsPresentFamilyIndex;
 	ibufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	if (vkCreateBuffer(mDevice, &ibufferInfo, nullptr, &mMemory.indexBuffer) != VK_SUCCESS)
+	if (vkCreateBuffer(mBase.device, &ibufferInfo, nullptr, &mMemory.indexBuffer) != VK_SUCCESS)
 		throw std::runtime_error("failed to create vertex buffer!");
 	VkMemoryRequirements imemRequirements;
-	vkGetBufferMemoryRequirements(mDevice, mMemory.indexBuffer, &imemRequirements);
+	vkGetBufferMemoryRequirements(mBase.device, mMemory.indexBuffer, &imemRequirements);
 
 	uint32_t memIndex = vkhelper::findMemoryIndex(
-		mPhysicalDevice,imemRequirements.memoryTypeBits & vmemRequirements.memoryTypeBits,
+		mBase.physicalDevice,imemRequirements.memoryTypeBits & vmemRequirements.memoryTypeBits,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	VkMemoryAllocateInfo memInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 	memInfo.allocationSize = vmemRequirements.size + imemRequirements.size;
 	memInfo.memoryTypeIndex = memIndex;
-	if (vkAllocateMemory(mDevice, &memInfo, nullptr, &mMemory.memory) != VK_SUCCESS)
+	if (vkAllocateMemory(mBase.device, &memInfo, nullptr, &mMemory.memory) != VK_SUCCESS)
 		throw std::runtime_error("failed to allocate memory");
 
-	vkBindBufferMemory(mDevice, mMemory.vertexBuffer, mMemory.memory, 0);
+	vkBindBufferMemory(mBase.device, mMemory.vertexBuffer, mMemory.memory, 0);
 	//begin command recording
 	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -147,12 +148,12 @@ void Render::copyDataToLocalGPUMemory()
 	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &transferCommandBuffer;
-	vkQueueSubmit(mQueue.graphicsPresentQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(mQueue.graphicsPresentQueue);
+	vkQueueSubmit(mBase.queue.graphicsPresentQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(mBase.queue.graphicsPresentQueue);
 
-	vkResetCommandPool(mDevice, generalCommandPool, 0);
+	vkResetCommandPool(mBase.device, generalCommandPool, 0);
 
-	vkBindBufferMemory(mDevice, mMemory.indexBuffer, mMemory.memory, vmemRequirements.size);
+	vkBindBufferMemory(mBase.device, mMemory.indexBuffer, mMemory.memory, vmemRequirements.size);
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	vkBeginCommandBuffer(transferCommandBuffer, &beginInfo);
 
@@ -163,9 +164,9 @@ void Render::copyDataToLocalGPUMemory()
 	vkEndCommandBuffer(transferCommandBuffer);
 	//submit commands for execution
 	submitInfo.pCommandBuffers = &transferCommandBuffer;
-	vkQueueSubmit(mQueue.graphicsPresentQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueSubmit(mBase.queue.graphicsPresentQueue, 1, &submitInfo, VK_NULL_HANDLE);
 
-	vkQueueWaitIdle(mQueue.graphicsPresentQueue);
+	vkQueueWaitIdle(mBase.queue.graphicsPresentQueue);
 	vkResetCommandBuffer(transferCommandBuffer, 0);
 	
 }
@@ -176,7 +177,7 @@ void Render::startDraw()
 	if (mSwapchain.imageAquireSem.empty())
 	{
 		VkSemaphoreCreateInfo semaphoreInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-		if (vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &imgAquireSem) != VK_SUCCESS)
+		if (vkCreateSemaphore(mBase.device, &semaphoreInfo, nullptr, &imgAquireSem) != VK_SUCCESS)
 			throw std::runtime_error("failed to create image available semaphore");
 	}
 	else
@@ -184,7 +185,7 @@ void Render::startDraw()
 		imgAquireSem = mSwapchain.imageAquireSem.back();
 		mSwapchain.imageAquireSem.pop_back();
 	}
-	if (vkAcquireNextImageKHR(mDevice, mSwapchain.swapChain, UINT64_MAX,
+	if (vkAcquireNextImageKHR(mBase.device, mSwapchain.swapChain, UINT64_MAX,
 		imgAquireSem, VK_NULL_HANDLE, &img) != VK_SUCCESS)
 	{
 		mSwapchain.imageAquireSem.push_back(imgAquireSem);
@@ -193,8 +194,8 @@ void Render::startDraw()
 
 	if (mSwapchain.frameData[img].frameFinishedFen != VK_NULL_HANDLE)
 	{
-		vkWaitForFences(mDevice, 1, &mSwapchain.frameData[img].frameFinishedFen, VK_TRUE, UINT64_MAX);
-		vkResetFences(mDevice, 1, &mSwapchain.frameData[img].frameFinishedFen);
+		vkWaitForFences(mBase.device, 1, &mSwapchain.frameData[img].frameFinishedFen, VK_TRUE, UINT64_MAX);
+		vkResetFences(mBase.device, 1, &mSwapchain.frameData[img].frameFinishedFen);
 	}
 
 	VkCommandBufferBeginInfo beginInfo{};
@@ -269,7 +270,7 @@ void Render::endDraw()
 	submitInfo.pCommandBuffers = &mSwapchain.frameData[img].commandBuffer;
 	submitInfo.signalSemaphoreCount = submitSignalSemaphores.size();
 	submitInfo.pSignalSemaphores = submitSignalSemaphores.data();
-	if (vkQueueSubmit(mQueue.graphicsPresentQueue, 1, &submitInfo, mSwapchain.frameData[img].frameFinishedFen) != VK_SUCCESS)
+	if (vkQueueSubmit(mBase.queue.graphicsPresentQueue, 1, &submitInfo, mSwapchain.frameData[img].frameFinishedFen) != VK_SUCCESS)
 		throw std::runtime_error("failed to submit draw command buffer");
 
 	//submit present command
@@ -281,7 +282,7 @@ void Render::endDraw()
 	presentInfo.pImageIndices = &img;
 	presentInfo.pResults = nullptr;
 
-	VkResult result = vkQueuePresentKHR(mQueue.graphicsPresentQueue, &presentInfo);
+	VkResult result = vkQueuePresentKHR(mBase.queue.graphicsPresentQueue, &presentInfo);
 
 	if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR || framebufferResized)
 	{
@@ -296,16 +297,16 @@ void Render::endDraw()
 
 void Render::resize()
 {
-	vkDeviceWaitIdle(mDevice);
+	vkDeviceWaitIdle(mBase.device);
 	destroySwapchainComponents();
 	//recreate swapchain and framebuffer
-	initVulkan::swapChain(mDevice, mPhysicalDevice, mSurface, &mSwapchain, mWindow, mQueue.graphicsPresentFamilyIndex);
-	initVulkan::renderPass(mDevice, &mRenderPass, mSwapchain);
-	initVulkan::perFrameDescriptorSets(mDevice, &mFrameDescriptorSets, mSwapchain);
-	initVulkan::graphicsPipeline(mDevice, &mPipeline, mSwapchain, mRenderPass, mFrameDescriptorSets);
-	initVulkan::framebuffers(mDevice, &mSwapchain, mRenderPass);
+	initVulkan::swapChain(mBase.device, mBase.physicalDevice, mSurface, &mSwapchain, mWindow, mBase.queue.graphicsPresentFamilyIndex);
+	initVulkan::renderPass(mBase.device, &mRenderPass, mSwapchain);
+	initVulkan::perFrameDescriptorSets(mBase.device, &mFrameDescriptorSets, mSwapchain);
+	initVulkan::graphicsPipeline(mBase.device, &mPipeline, mSwapchain, mRenderPass, mFrameDescriptorSets);
+	initVulkan::framebuffers(mBase.device, &mSwapchain, mRenderPass);
 	prepareDescriptorSets();
-	vkDeviceWaitIdle(mDevice);
+	vkDeviceWaitIdle(mBase.device);
 }
 
 void Render::DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 colour)
@@ -323,17 +324,17 @@ void Render::DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, glm::v
 
 void Render::destroySwapchainComponents()
 {
-	vkDestroyBuffer(mDevice, mMemory.viewProj.buffer, nullptr);
-	vkFreeMemory(mDevice, mMemory.viewProj.memory, nullptr);
-	vkDestroyDescriptorPool(mDevice, mFrameDescriptorSets.pool, nullptr);
-	vkDestroyDescriptorSetLayout(mDevice, mFrameDescriptorSets.layout, nullptr);
+	vkDestroyBuffer(mBase.device, mMemory.viewProj.buffer, nullptr);
+	vkFreeMemory(mBase.device, mMemory.viewProj.memory, nullptr);
+	vkDestroyDescriptorPool(mBase.device, mFrameDescriptorSets.pool, nullptr);
+	vkDestroyDescriptorSetLayout(mBase.device, mFrameDescriptorSets.layout, nullptr);
 	for (size_t i = 0; i < mSwapchain.frameData.size(); i++)
 	{
-		vkDestroyFramebuffer(mDevice, mSwapchain.frameData[i].framebuffer, nullptr);
+		vkDestroyFramebuffer(mBase.device, mSwapchain.frameData[i].framebuffer, nullptr);
 	}
-	vkDestroyPipeline(mDevice, mPipeline.pipeline, nullptr);
-	vkDestroyPipelineLayout(mDevice, mPipeline.layout, nullptr);
-	vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
+	vkDestroyPipeline(mBase.device, mPipeline.pipeline, nullptr);
+	vkDestroyPipelineLayout(mBase.device, mPipeline.layout, nullptr);
+	vkDestroyRenderPass(mBase.device, mRenderPass, nullptr);
 }
 
 void Render::prepareDescriptorSets()
@@ -341,7 +342,7 @@ void Render::prepareDescriptorSets()
 	VkDeviceSize slot = sizeof(viewProjectionBufferObj);
 
 	VkPhysicalDeviceProperties physDevProps;
-	vkGetPhysicalDeviceProperties(mPhysicalDevice, &physDevProps);
+	vkGetPhysicalDeviceProperties(mBase.physicalDevice, &physDevProps);
 	if (slot % physDevProps.limits.minUniformBufferOffsetAlignment != 0)
 		slot = slot + physDevProps.limits.minUniformBufferOffsetAlignment 
 		- (slot % physDevProps.limits.minUniformBufferOffsetAlignment);
@@ -352,28 +353,28 @@ void Render::prepareDescriptorSets()
 	bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 	bufferInfo.size = mMemory.viewProj.memSize;
 	bufferInfo.queueFamilyIndexCount = 1;
-	bufferInfo.pQueueFamilyIndices = &mQueue.graphicsPresentFamilyIndex;
+	bufferInfo.pQueueFamilyIndices = &mBase.queue.graphicsPresentFamilyIndex;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	if (vkCreateBuffer(mDevice, &bufferInfo, nullptr, &mMemory.viewProj.buffer) != VK_SUCCESS)
+	if (vkCreateBuffer(mBase.device, &bufferInfo, nullptr, &mMemory.viewProj.buffer) != VK_SUCCESS)
 		throw std::runtime_error("failed to create uniform buffer!");
 
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(mDevice, mMemory.viewProj.buffer, &memRequirements);
+	vkGetBufferMemoryRequirements(mBase.device, mMemory.viewProj.buffer, &memRequirements);
 
 
-	uint32_t memIndex = vkhelper::findMemoryIndex(mPhysicalDevice, memRequirements.memoryTypeBits,
+	uint32_t memIndex = vkhelper::findMemoryIndex(mBase.physicalDevice, memRequirements.memoryTypeBits,
 		(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT));
 
 	VkMemoryAllocateInfo memInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	memInfo.allocationSize = memRequirements.size;
 	memInfo.memoryTypeIndex = memIndex;
-	if (vkAllocateMemory(mDevice, &memInfo, nullptr, &mMemory.viewProj.memory) != VK_SUCCESS)
+	if (vkAllocateMemory(mBase.device, &memInfo, nullptr, &mMemory.viewProj.memory) != VK_SUCCESS)
 		throw std::runtime_error("failed to allocate memory");
 
-	vkBindBufferMemory(mDevice, mMemory.viewProj.buffer, mMemory.viewProj.memory, 0);
+	vkBindBufferMemory(mBase.device, mMemory.viewProj.buffer, mMemory.viewProj.memory, 0);
 
 
-	vkMapMemory(mDevice, mMemory.viewProj.memory, 0, mMemory.viewProj.memSize, 0, &mMemory.viewProj.pointer);
+	vkMapMemory(mBase.device, mMemory.viewProj.memory, 0, mMemory.viewProj.memSize, 0, &mMemory.viewProj.pointer);
 
 	for (size_t i = 0; i < mFrameDescriptorSets.sets.size(); i++)
 	{
@@ -390,7 +391,7 @@ void Render::prepareDescriptorSets()
 		writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		writeSet.descriptorCount = 1;
 
-		vkUpdateDescriptorSets(mDevice, 1, &writeSet, 0, nullptr);
+		vkUpdateDescriptorSets(mBase.device, 1, &writeSet, 0, nullptr);
 	}
 	mMemory.viewProj.slotSize = slot;
 }

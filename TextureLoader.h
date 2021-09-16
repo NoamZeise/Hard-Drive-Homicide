@@ -14,33 +14,48 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <cmath>
 
+#include "typeStructs.h"
+#include "vkhelper.h"
 
 struct TempTexture
 {
+	
 	std::string path;
 	unsigned char* pixelData;
 	int width;
 	int height;
 	int nrChannels;
 	VkFormat format;
+	VkDeviceSize fileSize;
 };
 
 struct Texture
 {
+	Texture(TempTexture tex)
+	{
+		width = tex.width;
+		height = tex.height;
+		mipLevels = std::floor(std::log2(width > height ? width : height)) + 1;
+
+	}
+	uint32_t width;
+	uint32_t height;
 	VkImage image;
 	VkImageView view;
+	uint32_t mipLevels;
 };
 
 class TextureLoader
 {
 public:
-	TextureLoader(VkDevice device);
+	TextureLoader(Base base);
 	uint32_t loadTexture(std::string path);
 	void endLoading();
 
 private:
-	VkDevice device;
+	Base base;
 	std::vector<TempTexture> texToLoad;
 	std::vector<Texture> textures;
 	VkBuffer buffer;
