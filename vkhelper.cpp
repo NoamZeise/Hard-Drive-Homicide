@@ -54,3 +54,14 @@ void vkhelper::createBufferAndMemory(Base base, VkDeviceSize size, VkBuffer* buf
 	if (vkAllocateMemory(base.device, &memInfo, nullptr, memory) != VK_SUCCESS)
 		throw std::runtime_error("failed to allocate memory of size " + memReq.size);
 }
+
+void vkhelper::createMemory(Base base, VkDeviceSize size, VkDeviceMemory* memory,
+	VkMemoryPropertyFlags properties, uint32_t memoryTypeBits)
+{
+	VkMemoryAllocateInfo memInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+	memInfo.allocationSize = size;
+	memInfo.memoryTypeIndex = findMemoryIndex(base.physicalDevice, memoryTypeBits, properties);
+
+	if (vkAllocateMemory(base.device, &memInfo, nullptr, memory) != VK_SUCCESS)
+		throw std::runtime_error("failed to allocate memory of size " + size);
+}

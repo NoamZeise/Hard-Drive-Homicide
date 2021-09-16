@@ -17,8 +17,8 @@ App::App(int windowWidth, int windowHeight)
 	glfwSetKeyCallback(mWindow, key_callback);
 	glfwSetMouseButtonCallback(mWindow, mouse_button_callback);
 
-	//init renderer
 	mRender = new Render(mWindow);
+	loadAssets();
 }
 
 
@@ -28,6 +28,13 @@ App::~App()
 	//cleanup glfw
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
+}
+
+void App::loadAssets()
+{
+	uint32_t leavesTex = mRender->textureLoader.loadTexture("textures/leaves.png");
+
+	mRender->textureLoader.endLoading();
 }
 
 void App::run()

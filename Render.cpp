@@ -15,7 +15,6 @@ Render::Render(GLFWwindow* window)
 	initVulkan::framebuffers(mBase.device, &mSwapchain, mRenderPass);
 	initVulkan::perFrameDescriptorSets(mBase.device, &mFrameDescriptorSets, mSwapchain);
 	initVulkan::graphicsPipeline(mBase.device, &mPipeline, mSwapchain, mRenderPass, mFrameDescriptorSets);
-	initVulkan::graphicsPipeline(mBase.device, &mPipeline, mSwapchain, mRenderPass, mFrameDescriptorSets);
 	prepareDescriptorSets();
 	//create general command pool
 	VkCommandPoolCreateInfo commandPoolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
@@ -38,12 +37,14 @@ Render::Render(GLFWwindow* window)
 	ubo.view = glm::mat4(1.0f);
 	ubo.proj = glm::ortho(0.0f, (float)mSwapchain.extent.width, 0.0f, (float)mSwapchain.extent.height, -1.0f, 1.0f);
 
+	textureLoader = TextureLoader(mBase, generalCommandPool);
 }
 
 Render::~Render()
 {
 	vkQueueWaitIdle(mBase.queue.graphicsPresentQueue);
 
+	textureLoader.~TextureLoader();
 	destroySwapchainComponents();
 	vkDestroyBuffer(mBase.device, mMemory.vertexBuffer, nullptr);
 	vkDestroyBuffer(mBase.device, mMemory.indexBuffer, nullptr);
@@ -250,12 +251,10 @@ void Render::endDraw()
 	begunDraw = false;
 	//end render pass
 	vkCmdEndRenderPass(mSwapchain.frameData[img].commandBuffer);
-
 	if (vkEndCommandBuffer(mSwapchain.frameData[img].commandBuffer) != VK_SUCCESS)
 	{
 		throw std::runtime_error("failed to record command buffer!");
 	}
-
 
 	std::array<VkSemaphore, 1> submitWaitSemaphores = { imgAquireSem };
 	std::array<VkPipelineStageFlags, 1> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };

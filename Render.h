@@ -18,6 +18,7 @@
 #include "vkinit.h"
 #include "vkhelper.h"
 #include "typeStructs.h"
+#include "TextureLoader.h"
 
 class Render
 {
@@ -29,7 +30,7 @@ public:
 	void DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 colour);
 
 	bool framebufferResized = false;
-
+	TextureLoader textureLoader;
 private:
 	GLFWwindow* mWindow;
 	VkInstance mInstance;

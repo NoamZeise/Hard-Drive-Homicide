@@ -22,6 +22,8 @@ struct vkhelper
 	static glm::mat4 getModel(glm::vec2 pos, glm::vec2 size, float rotate);
 	static void createBufferAndMemory(Base base, VkDeviceSize size, VkBuffer* buffer, VkDeviceMemory* memory,
 		VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+	static void createMemory(Base base, VkDeviceSize size, VkDeviceMemory* memory,
+		VkMemoryPropertyFlags properties, uint32_t memoryTypeBits);
 };
 
 

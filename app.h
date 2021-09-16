@@ -22,6 +22,7 @@ class App
 public:
 	App(int windowWidth, int windowHeight);
 	~App();
+	void loadAssets();
 	void run();
 	void update();
 	void draw();
