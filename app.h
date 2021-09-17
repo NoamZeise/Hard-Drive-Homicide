@@ -41,6 +41,9 @@ private:
 	GLFWwindow* mWindow;
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;
+
+	uint32_t testTex;
+	uint32_t testTex2;
 };
 
 #endif

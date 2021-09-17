@@ -53,7 +53,10 @@ public:
 	TextureLoader(Base base, VkCommandPool pool);
 	~TextureLoader();
 	uint32_t loadTexture(std::string path);
+	VkImageView getImageView(uint32_t texID);
 	void endLoading();
+
+	VkSampler sampler;
 
 private:
 	Base base;
@@ -62,7 +65,6 @@ private:
 	std::vector<TempTexture> texToLoad;
 	std::vector<Texture> textures;
 	VkDeviceMemory memory;
-	VkSampler sampler;
 };
 
 

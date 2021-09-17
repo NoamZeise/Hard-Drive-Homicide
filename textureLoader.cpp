@@ -276,6 +276,7 @@ void TextureLoader::endLoading()
 			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
 			0, nullptr, 0, nullptr, 1, &barrier);
 	}
+
 	if (vkEndCommandBuffer(tempCmdBuffer) != VK_SUCCESS)
 		throw std::runtime_error("failed to end command buffer");
 	vkQueueSubmit(base.queue.graphicsPresentQueue, 1, &submitInfo, VK_NULL_HANDLE);
@@ -321,4 +322,14 @@ void TextureLoader::endLoading()
 		throw std::runtime_error("Failed create sampler");
 
 	vkFreeCommandBuffers(base.device, pool, 1, &tempCmdBuffer);
+}
+
+VkImageView TextureLoader::getImageView(uint32_t texID)
+{
+	if (texID < textures.size())
+		return textures[texID].view;
+	else if (textures.size() > 0)
+		return textures[0].view;
+	else
+		throw std::runtime_error("no textures to replace error id with");
 }

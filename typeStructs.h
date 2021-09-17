@@ -94,10 +94,15 @@ struct Vertex
 	}
 };
 
-struct pushConstants 
+struct vectPushConstants
 {
 	glm::mat4 model;
-	glm::vec3 colour;
+};
+
+struct fragPushConstants
+{
+	glm::vec4 colour;
+	uint32_t texID;
 };
 
 
@@ -109,10 +114,10 @@ struct viewProjectionBufferObj
 
 struct UniformBufferTypes
 {
-	VkDeviceMemory memory;
 	VkBuffer buffer;
 	VkDeviceSize memSize;
 	VkDeviceSize slotSize;
+	VkDeviceMemory memory;
 	void* pointer;
 };
 
@@ -124,12 +129,19 @@ struct memoryObjects
 
 	VkDeviceMemory stagingMemory;
 	VkBuffer stagingBuffer;
+	
 	UniformBufferTypes viewProj;
+
 };
 
 
 struct DescriptorSets
 {
+	void destroySet(VkDevice device)
+	{
+		vkDestroyDescriptorPool(device, pool, nullptr);
+		vkDestroyDescriptorSetLayout(device, layout, nullptr);
+	}
 	VkDescriptorPool pool;
 	VkDescriptorSetLayout layout;
 	std::vector<VkDescriptorSet> sets;

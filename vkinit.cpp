@@ -25,8 +25,8 @@ void initVulkan::instance(VkInstance* instance)
 
 	//setup debug features
 #ifndef NDEBUG
-	//if (!validationLayersSupported())
-	//	throw std::runtime_error("validation layers were requested, but aren't supported");
+	if (!validationLayersSupported())
+		throw std::runtime_error("validation layers were requested, but aren't supported");
 
 	instanceCreateInfo.enabledLayerCount = OPTIONAL_LAYERS.size();
 	instanceCreateInfo.ppEnabledLayerNames = OPTIONAL_LAYERS.data();
@@ -438,13 +438,16 @@ void initVulkan::framebuffers(VkDevice device, SwapChain* swapchain, VkRenderPas
 	}
 }
 
-void initVulkan::graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain swapchain, VkRenderPass renderPass, DescriptorSets ds)
+void initVulkan::graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain swapchain, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> dsV)
 {
-	//config push consts
-	VkPushConstantRange pushConsts;
-	pushConsts.offset = 0;
-	pushConsts.size = sizeof(pushConstants);
-	pushConsts.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	std::array<VkPushConstantRange, 2> pushConsts;
+	pushConsts[0].offset = 0;
+	pushConsts[0].size = sizeof(vectPushConstants);
+	pushConsts[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	pushConsts[1].offset = sizeof(vectPushConstants);
+	pushConsts[1].size = sizeof(fragPushConstants);
+	pushConsts[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
 
 	//load shader modules
 	auto vertexShaderModule = loadShaderModule(device, "shaders/vert.spv");
@@ -452,10 +455,10 @@ void initVulkan::graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain
 
 	//create pipeline layout
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-	pipelineLayoutInfo.setLayoutCount = 1; 
-	pipelineLayoutInfo.pSetLayouts = &ds.layout; //add descriptor sets
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConsts;
+	pipelineLayoutInfo.setLayoutCount = dsV.size(); 
+	pipelineLayoutInfo.pSetLayouts = dsV.data();
+	pipelineLayoutInfo.pushConstantRangeCount = pushConsts.size();
+	pipelineLayoutInfo.pPushConstantRanges = pushConsts.data();
 	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipeline->layout) != VK_SUCCESS)
 		throw std::runtime_error("failed to create pipeline layout");
 
@@ -557,29 +560,28 @@ void initVulkan::graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain
 	vkDestroyShaderModule(device, fragmentShaderModule, nullptr);
 }
 
-void initVulkan::perFrameDescriptorSets(VkDevice device, DescriptorSets* descriptorSets, SwapChain swapchain)
+
+void initVulkan::CreateDescriptorSets(VkDevice device, DescriptorSets* descriptorSets, uint32_t binding, 
+	uint32_t frames, VkDescriptorType type, uint32_t descriptorCount, VkShaderStageFlagBits stageFlags)
 {
+
 	//create pool
-
 	VkDescriptorPoolSize poolSize{};
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = swapchain.frameData.size();
-
+	poolSize.type = type;
+	poolSize.descriptorCount = frames;
 	VkDescriptorPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 	poolInfo.poolSizeCount = 1;
 	poolInfo.pPoolSizes = &poolSize;
-	poolInfo.maxSets = swapchain.frameData.size();
+	poolInfo.maxSets = frames;
 
 	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorSets->pool) != VK_SUCCESS)
 		throw std::runtime_error("failed to create descriptor pool");
-
 	//create layout
-
 	VkDescriptorSetLayoutBinding layoutBinding{};
-	layoutBinding.binding = 0;
-	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	layoutBinding.descriptorCount = 1;
-	layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	layoutBinding.binding = binding;
+	layoutBinding.descriptorType = type;
+	layoutBinding.descriptorCount = descriptorCount;
+	layoutBinding.stageFlags = stageFlags;
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 	layoutInfo.bindingCount = 1;
@@ -588,15 +590,14 @@ void initVulkan::perFrameDescriptorSets(VkDevice device, DescriptorSets* descrip
 		throw std::runtime_error("failed to create descriptor sets");
 
 	//create descriptor sets
-	std::vector<VkDescriptorSetLayout> layouts(swapchain.frameData.size(), descriptorSets->layout);
+	std::vector<VkDescriptorSetLayout> layouts(frames, descriptorSets->layout);
 	VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 	allocInfo.descriptorPool = descriptorSets->pool;
-	allocInfo.descriptorSetCount = swapchain.frameData.size();
+	allocInfo.descriptorSetCount = frames;
 	allocInfo.pSetLayouts = layouts.data();
-	descriptorSets->sets.resize(swapchain.frameData.size());
+	descriptorSets->sets.resize(frames);
 	if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets->sets.data()) != VK_SUCCESS)
 		throw std::runtime_error("failed to allocate descriptor sets");
-
 }
 
 //HELPERS
@@ -696,7 +697,10 @@ void initVulkan::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInf
 {
 	//debug messenger settings
 	createInfo->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT| //only see warnings and errors
+	if(ERROR_ONLY)
+		createInfo->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	else
+	createInfo->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT| 
 		 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	createInfo->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT //all types
 		| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT

@@ -14,6 +14,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <string>
 
 #include "vkinit.h"
 #include "vkhelper.h"
@@ -25,12 +26,14 @@ class Render
 public:
 	Render(GLFWwindow* window);
 	~Render();
+	uint32_t loadTexture(std::string filepath);
+	void endTextureLoad();
 	void startDraw();
 	void endDraw();
-	void DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 colour);
+	void DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, glm::vec4 colour, uint32_t texID);
+	void DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, uint32_t texID);
 
 	bool framebufferResized = false;
-	TextureLoader textureLoader;
 private:
 	GLFWwindow* mWindow;
 	VkInstance mInstance;
@@ -43,7 +46,11 @@ private:
 	memoryObjects mMemory;
 	VkCommandPool generalCommandPool;
 	VkCommandBuffer transferCommandBuffer;
-	DescriptorSets mFrameDescriptorSets;
+	VkDescriptorPool descPool;
+	DescriptorSets viewprojDS;
+	VkSampler texFragSampler;
+	DescriptorSets texturesDS;
+	TextureLoader textureLoader;
 
 	bool begunDraw = false;
 	uint32_t img;
@@ -60,7 +67,8 @@ private:
 
 	void loadDataToGpu();
 	void copyDataToLocalGPUMemory();
-	void prepareDescriptorSets();
+	void prepareViewProjDS();
+	void prepareFragmentDescriptorSets();
 	void destroySwapchainComponents();
 	void resize();
 

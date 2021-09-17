@@ -16,7 +16,6 @@ App::App(int windowWidth, int windowHeight)
 	glfwSetScrollCallback(mWindow, scroll_callback);
 	glfwSetKeyCallback(mWindow, key_callback);
 	glfwSetMouseButtonCallback(mWindow, mouse_button_callback);
-
 	mRender = new Render(mWindow);
 	loadAssets();
 }
@@ -32,9 +31,9 @@ App::~App()
 
 void App::loadAssets()
 {
-	uint32_t leavesTex = mRender->textureLoader.loadTexture("textures/leaves.png");
-
-	mRender->textureLoader.endLoading();
+	testTex = mRender->loadTexture("textures/leaves.png");
+	testTex2 = mRender->loadTexture("textures/healthBar.png");
+	mRender->endTextureLoad();
 }
 
 void App::run()
@@ -62,7 +61,8 @@ void App::draw()
 {
 	mRender->startDraw();
 
-	mRender->DrawSquare(glm::vec2(10, 10), glm::vec2(100, 100), 0, glm::vec3(1.0f, 1.0f, 1.0f));
+	mRender->DrawSquare(glm::vec2(10, 10), glm::vec2(100, 100), 0, testTex);
+	mRender->DrawSquare(glm::vec2(300, 200), glm::vec2(50, 50), 0, testTex2);
 
 	mRender->endDraw();
 }

@@ -17,7 +17,11 @@
 
 #include "typeStructs.h"
 
+const int MAX_TEXTURES_SUPPORTED = 100;//match in shader
+
 #ifndef NDEBUG
+const bool ERROR_ONLY = false;
+
 const std::array<const char*, 1> OPTIONAL_LAYERS = {
 		"VK_LAYER_KHRONOS_validation"
 };
@@ -25,7 +29,6 @@ const std::array<VkValidationFeatureEnableEXT, 2> VALIDATION_LAYER_FEATURES = {
 	VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
 	VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
 };
-
 
 const std::array<const char*, 1> REQUESTED_DEVICE_EXTENSIONS = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -45,8 +48,10 @@ public:
 	static void destroySwapchain(SwapChain* swapchain, const VkDevice& device);
 	static void renderPass(VkDevice device, VkRenderPass* renderPass, SwapChain swapchain);
 	static void framebuffers(VkDevice device, SwapChain* swapchain, VkRenderPass renderPass);
-	static void graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain swapchain,VkRenderPass renderPass, DescriptorSets ds);
-	static void perFrameDescriptorSets(VkDevice device, DescriptorSets* descriptorSets, SwapChain swapchain);
+	static void graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain swapchain,
+		VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> dsLayouts);
+	static void CreateDescriptorSets(VkDevice device, DescriptorSets* descriptorSets, uint32_t binding,
+		uint32_t frames, VkDescriptorType type, uint32_t descriptorCount, VkShaderStageFlagBits stageFlags);
 #ifndef NDEBUG
 	static void debugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT* messenger);
 	static void DestroyDebugUtilsMessengerEXT(VkInstance instance,
