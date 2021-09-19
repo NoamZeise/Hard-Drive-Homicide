@@ -26,6 +26,9 @@ class Render
 {
 public:
 	Render(GLFWwindow* window);
+	void initRender(GLFWwindow* window);
+	Render(GLFWwindow* window, glm::vec2 target);
+	void updateProjectionMatrix();
 	~Render();
 	uint32_t LoadTexture(std::string filepath);
 	Font* LoadFont(std::string filepath);
@@ -37,10 +40,10 @@ public:
 	void DrawSquare(glm::vec4 drawRect, float rotate, uint32_t texID);
 	void DrawString(Font* font, std::string text, glm::vec2 position, float size, float rotate, glm::vec4 colour);
 	float MeasureString(Font* font, std::string text, float size);
-
 	bool framebufferResized = false;
 private:
 	GLFWwindow* mWindow;
+	glm::vec2 targetResolution;
 	VkInstance mInstance;
 	VkSurfaceKHR mSurface;
 	Base mBase;

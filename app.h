@@ -21,7 +21,7 @@
 class App
 {
 public:
-	App(int windowWidth, int windowHeight);
+	App();
 	~App();
 	void loadAssets();
 	void run();
@@ -39,6 +39,10 @@ public:
 
 	Input input;
 private:
+	const int TARGET_WIDTH = 160;
+	const int TARGET_HEIGHT = 144;
+	const bool FIXED_RATIO = true;
+
 	GLFWwindow* mWindow;
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;

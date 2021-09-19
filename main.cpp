@@ -8,7 +8,7 @@ int main()
 
 	try 
 	{
-		App* app = new App(1600, 900);
+		App* app = new App();
 		app->run();
 		delete app;
 	}

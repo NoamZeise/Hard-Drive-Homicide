@@ -50,3 +50,5 @@ frag.spv
 x64/Release/Font.obj
 x64/Release/Audio.obj
 ladyblue.mp3
+.vscode/launch.json
+.vscode/c_cpp_properties.json

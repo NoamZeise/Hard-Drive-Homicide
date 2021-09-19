@@ -1,11 +1,11 @@
 #include "app.h"
 
 
-App::App(int windowWidth, int windowHeight)
+App::App()
 {
 	//set member variables
-	mWindowWidth = windowWidth;
-	mWindowHeight = windowHeight;
+	mWindowWidth = 800;
+	mWindowHeight = 720;
 	//init glfw window
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //using vulkan not openGL
@@ -16,7 +16,9 @@ App::App(int windowWidth, int windowHeight)
 	glfwSetScrollCallback(mWindow, scroll_callback);
 	glfwSetKeyCallback(mWindow, key_callback);
 	glfwSetMouseButtonCallback(mWindow, mouse_button_callback);
-	mRender = new Render(mWindow);
+	if(FIXED_RATIO)
+		glfwSetWindowAspectRatio(mWindow, TARGET_WIDTH, TARGET_HEIGHT);
+	mRender = new Render(mWindow, glm::vec2(TARGET_WIDTH, TARGET_HEIGHT));
 	loadAssets();
 }
 
@@ -49,7 +51,8 @@ void App::resize(int windowWidth, int windowHeight)
 {
 	mWindowWidth = windowWidth;
 	mWindowHeight = windowHeight;
-	mRender->framebufferResized = true;
+	if(mRender != nullptr)
+		mRender->framebufferResized = true;
 }
 
 void App::update()

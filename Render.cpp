@@ -2,6 +2,22 @@
 
 Render::Render(GLFWwindow* window)
 {
+	initRender(window);
+	targetResolution = glm::vec2(mSwapchain.extent.width, mSwapchain.extent.height);
+	updateProjectionMatrix();
+}
+
+Render::Render(GLFWwindow* window, glm::vec2 target)
+{
+	initRender(window);
+	targetResolution = target;
+	updateProjectionMatrix();
+}
+
+
+
+void Render::initRender(GLFWwindow* window)
+{
 	mWindow = window;
 	initVulkan::instance(&mInstance);
 #ifndef NDEBUG
@@ -15,7 +31,7 @@ Render::Render(GLFWwindow* window)
 	initVulkan::framebuffers(mBase.device, &mSwapchain, mRenderPass);
 
 
-	initVulkan::CreateDescriptorSets(mBase.device, &mViewprojDS, 0, mSwapchain.frameData.size(), 
+	initVulkan::CreateDescriptorSets(mBase.device, &mViewprojDS, 0, mSwapchain.frameData.size(),
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
 
 	std::vector<VkDescriptorSetLayoutBinding> bindings(2);
@@ -33,7 +49,7 @@ Render::Render(GLFWwindow* window)
 	if (vkCreateDescriptorSetLayout(mBase.device, &layoutInfo, nullptr, &mTexturesDS.layout) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create descriptor set layout");
 
-	std::vector<VkDescriptorSetLayout> dsLs = {mViewprojDS.layout, mTexturesDS.layout };
+	std::vector<VkDescriptorSetLayout> dsLs = { mViewprojDS.layout, mTexturesDS.layout };
 
 	initVulkan::graphicsPipeline(mBase.device, &mPipeline, mSwapchain, mRenderPass, dsLs);
 	prepareViewProjDS();
@@ -52,14 +68,9 @@ Render::Render(GLFWwindow* window)
 	commandBufferInfo.commandBufferCount = 1;
 	if (vkAllocateCommandBuffers(mBase.device, &commandBufferInfo, &mTransferCommandBuffer))
 		throw std::runtime_error("failed to allocate command buffer");
-	
+
 	loadDataToGpu();
 	copyDataToLocalGPUMemory();
-
-
-	mUbo.view = glm::mat4(1.0f);
-	mUbo.proj = glm::ortho(0.0f, (float)mSwapchain.extent.width, 0.0f, (float)mSwapchain.extent.height, -1.0f, 1.0f);
-
 	mTextureLoader = TextureLoader(mBase, mGeneralCommandPool);
 	mTextureLoader.loadTexture("textures/error.png");
 }
@@ -264,8 +275,6 @@ void Render::startDraw()
 		throw std::runtime_error("failed to being recording command buffer");
 	}
 
-	mUbo.view = glm::mat4(1.0f);
-	mUbo.proj = glm::ortho(0.0f, (float)mSwapchain.extent.width, 0.0f, (float)mSwapchain.extent.height, -1.0f, 1.0f);
 
 	memcpy(static_cast<char*>(mMemory.viewProj.pointer) + (mImg * mMemory.viewProj.slotSize), &mUbo, mMemory.viewProj.slotSize);
 
@@ -384,6 +393,7 @@ void Render::resize()
 	prepareViewProjDS();
 	prepareFragmentDescriptorSets();
 	vkDeviceWaitIdle(mBase.device);
+	updateProjectionMatrix();
 }
 
 void Render::DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, uint32_t texID)
@@ -460,6 +470,24 @@ float Render::MeasureString(Font* font, std::string text, float size)
 		sz += cTex->Advance * size;
 	}
 	return sz;
+}
+
+void Render::updateProjectionMatrix()
+{
+
+	float correction;
+	float deviceRatio = mSwapchain.extent.width / mSwapchain.extent.height;
+	float virtualRatio = targetResolution.x / targetResolution.y;
+	float xCorrection = mSwapchain.extent.width / targetResolution.x;
+	float yCorrection = mSwapchain.extent.height / targetResolution.y;
+
+	if (virtualRatio < deviceRatio) {
+		correction = yCorrection;
+	}
+	else {
+		correction = xCorrection;
+	}
+	mUbo.proj = glm::ortho(0.0f, (float)mSwapchain.extent.width / correction, 0.0f, (float)mSwapchain.extent.height / correction, -1.0f, 1.0f);
 }
 
 void Render::destroySwapchainComponents()
