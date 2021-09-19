@@ -32,16 +32,28 @@ uint32_t TextureLoader::loadTexture(std::string path)
 	switch (tex->nrChannels)
 	{
 	case 1:
-		tex->format = VK_FORMAT_R8_SRGB;
+		if(USE_SRGB)
+			tex->format = VK_FORMAT_R8_SRGB;
+		else
+			tex->format = VK_FORMAT_R8_UNORM;
 		break;
 	case 2:
-		tex->format = VK_FORMAT_R8G8_SRGB;
+		if (USE_SRGB)
+			tex->format = VK_FORMAT_R8G8_SRGB;
+		else
+			tex->format = VK_FORMAT_R8G8_UNORM;
 		break;
 	case 3:
-		tex->format = VK_FORMAT_R8G8B8_SRGB;
+		if (USE_SRGB)
+			tex->format = VK_FORMAT_R8G8B8_SRGB;
+		else
+			tex->format = VK_FORMAT_R8G8B8_UNORM;
 		break;
 	case 4:
-		tex->format = VK_FORMAT_R8G8B8A8_SRGB;
+		if (USE_SRGB)
+			tex->format = VK_FORMAT_R8G8B8A8_SRGB;
+		else
+			tex->format = VK_FORMAT_R8G8B8A8_UNORM;
 		break;
 	default:
 		throw std::runtime_error("texture at " + path + " has an unsupported number of channels");
@@ -128,13 +140,14 @@ void TextureLoader::endLoading()
 		textures[i] = Texture(texToLoad[i]);
 		VkFormatProperties formatProperties;
 		vkGetPhysicalDeviceFormatProperties(base.physicalDevice, texToLoad[i].format, &formatProperties);
-		if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
-			textures[i].mipLevels = 1;
-		if(!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT))
+		if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)
+			|| !(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)
+			|| !ENABLE_MIP)
 			textures[i].mipLevels = 1;
 		//get smallest mip levels of any texture
 		if (textures[i].mipLevels < minMips)
 			minMips = textures[i].mipLevels;
+
 
 		//create image
 		VkImageCreateInfo imageInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
@@ -142,7 +155,7 @@ void TextureLoader::endLoading()
 		imageInfo.extent.width = textures[i].width;
 		imageInfo.extent.height = textures[i].height;
 		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = textures[i].mipLevels; //todo add mipmap
+		imageInfo.mipLevels = textures[i].mipLevels;
 		imageInfo.arrayLayers = 1;
 		imageInfo.format = texToLoad[i].format;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -344,10 +357,19 @@ void TextureLoader::endLoading()
 	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	if (PIXELATED)
+	{
+		samplerInfo.magFilter = VK_FILTER_NEAREST;
+		samplerInfo.minFilter = VK_FILTER_NEAREST;
+	}
+	else
+	{
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+	}
 	samplerInfo.anisotropyEnable = VK_TRUE;
 	samplerInfo.maxAnisotropy = deviceProps.limits.maxSamplerAnisotropy;
+	//samplerInfo.maxAnisotropy = deviceProps.limits.maxSamplerAnisotropy;
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 	samplerInfo.unnormalizedCoordinates = VK_FALSE;
 	samplerInfo.compareEnable = VK_FALSE;

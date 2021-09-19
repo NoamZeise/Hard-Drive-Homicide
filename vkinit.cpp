@@ -191,7 +191,10 @@ void initVulkan::swapChain(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 	else if (formatCount == 1 && formats[0].format == VK_FORMAT_UNDEFINED)
 	{
 		swapchain->format = formats[0];
-		swapchain->format.format = VK_FORMAT_R8G8B8A8_SRGB;
+		if(USE_SRGB)
+			swapchain->format.format = VK_FORMAT_R8G8B8A8_SRGB;
+		else
+			swapchain->format.format = VK_FORMAT_R8G8B8A8_UNORM;
 	}
 	else
 	{
@@ -201,7 +204,8 @@ void initVulkan::swapChain(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 			switch (fmt.format)
 			{
 			case VK_FORMAT_R8G8B8A8_SRGB:
-				swapchain->format = fmt;
+				if (USE_SRGB)
+					swapchain->format = fmt;
 				break;
 			case VK_FORMAT_R8G8B8A8_UNORM:
 			case VK_FORMAT_B8G8R8A8_UNORM:
@@ -450,8 +454,8 @@ void initVulkan::graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain
 
 
 	//load shader modules
-	auto vertexShaderModule = loadShaderModule(device, "shaders/vert.spv");
-	auto fragmentShaderModule = loadShaderModule(device, "shaders/frag.spv");
+	auto vertexShaderModule = loadShaderModule(device, "vert.spv");
+	auto fragmentShaderModule = loadShaderModule(device, "frag.spv");
 
 	//create pipeline layout
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };

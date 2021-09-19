@@ -18,6 +18,10 @@
 #include <string>
 
 
+static bool USE_SRGB = false;
+static bool ENABLE_MIP = false;
+static bool PIXELATED = true; //for pixelated 
+
 struct QueueFamilies
 {
 	uint32_t graphicsPresentFamilyIndex;

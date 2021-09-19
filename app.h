@@ -46,8 +46,9 @@ private:
 	GLFWwindow* mWindow;
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;
-
 	Input previousInput;
+
+	uint32_t gbTest;
 };
 
 #endif

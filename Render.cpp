@@ -72,7 +72,7 @@ void Render::initRender(GLFWwindow* window)
 	loadDataToGpu();
 	copyDataToLocalGPUMemory();
 	mTextureLoader = TextureLoader(mBase, mGeneralCommandPool);
-	mTextureLoader.loadTexture("textures/error.png");
+	mTextureLoader.loadTexture("error.png");
 }
 
 Render::~Render()
