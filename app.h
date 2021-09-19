@@ -16,6 +16,7 @@
 
 #include "Render.h"
 #include "input.h"
+#include "Audio.h"
 
 class App
 {
@@ -42,8 +43,7 @@ private:
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;
 
-	uint32_t testTex;
-	uint32_t testTex2;
+	Input previousInput;
 };
 
 #endif

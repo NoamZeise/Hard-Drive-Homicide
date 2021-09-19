@@ -450,8 +450,8 @@ void initVulkan::graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain
 
 
 	//load shader modules
-	auto vertexShaderModule = loadShaderModule(device, "shaders/vert.spv");
-	auto fragmentShaderModule = loadShaderModule(device, "shaders/frag.spv");
+	auto vertexShaderModule = loadShaderModule(device, "vert.spv");
+	auto fragmentShaderModule = loadShaderModule(device, "frag.spv");
 
 	//create pipeline layout
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
@@ -607,7 +607,7 @@ void initVulkan::fillFrameData(VkDevice device, FrameData* frame, uint32_t graph
 	//create command pool
 	VkCommandPoolCreateInfo commandPoolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 	commandPoolInfo.queueFamilyIndex = graphicsQueueIndex;
-	commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	//commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &frame->commandPool) != VK_SUCCESS)
 		throw std::runtime_error("failed to create command buffer");
 

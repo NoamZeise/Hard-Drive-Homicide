@@ -17,10 +17,8 @@
 
 #include "typeStructs.h"
 
-const int MAX_TEXTURES_SUPPORTED = 100;//match in shader
-
 #ifndef NDEBUG
-const bool ERROR_ONLY = false;
+const bool ERROR_ONLY = true;
 
 const std::array<const char*, 1> OPTIONAL_LAYERS = {
 		"VK_LAYER_KHRONOS_validation"

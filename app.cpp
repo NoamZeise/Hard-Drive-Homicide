@@ -31,8 +31,8 @@ App::~App()
 
 void App::loadAssets()
 {
-	testTex = mRender->loadTexture("textures/leaves.png");
-	testTex2 = mRender->loadTexture("textures/healthBar.png");
+	//TODO load assets
+
 	mRender->endTextureLoad();
 }
 
@@ -55,14 +55,17 @@ void App::resize(int windowWidth, int windowHeight)
 void App::update()
 {
 	glfwPollEvents();
+
+	//TODO update app
+
+	previousInput = input;
 }
 
 void App::draw()
 {
 	mRender->startDraw();
 
-	mRender->DrawSquare(glm::vec2(10, 10), glm::vec2(100, 100), 0, testTex);
-	mRender->DrawSquare(glm::vec2(300, 200), glm::vec2(50, 50), 0, testTex2);
+	//TODO draw app
 
 	mRender->endDraw();
 }

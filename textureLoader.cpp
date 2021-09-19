@@ -49,13 +49,44 @@ uint32_t TextureLoader::loadTexture(std::string path)
 	return texToLoad.size() - 1;
 }
 
+uint32_t TextureLoader::loadTexture(unsigned char* data, int width, int height, int nrChannels)
+{
+	texToLoad.push_back({ "NULL" });
+	TempTexture* tex = &texToLoad.back();
+	tex->pixelData = data;
+	tex->width = width;
+	tex->height = height;
+	tex->nrChannels = nrChannels;
+	tex->fileSize = tex->width * tex->height * tex->nrChannels;
+
+	switch (tex->nrChannels)
+	{
+	case 1:
+		tex->format = VK_FORMAT_R8_SRGB;
+		break;
+	case 2:
+		tex->format = VK_FORMAT_R8G8_SRGB;
+		break;
+	case 3:
+		tex->format = VK_FORMAT_R8G8B8_SRGB;
+		break;
+	case 4:
+		tex->format = VK_FORMAT_R8G8B8A8_SRGB;
+		break;
+	default:
+		throw std::runtime_error("texture character has an unsupported number of channels");
+	}
+	return texToLoad.size() - 1;
+}
+
 
 void TextureLoader::endLoading()
 {
 	if (texToLoad.size() <= 0)
 		return;
 
-	
+	if (texToLoad.size() > MAX_TEXTURES_SUPPORTED)
+		throw std::runtime_error("not enough storage for textures");
 	textures.resize(texToLoad.size());
 
 	VkDeviceSize totalFilesize = 0;
@@ -85,14 +116,21 @@ void TextureLoader::endLoading()
 	{
 		//copy texture from pixel data to mappable gpu memory
 		memcpy(static_cast<char*>(pMem) + bufferOffset, texToLoad[i].pixelData, texToLoad[i].fileSize);
-		stbi_image_free(texToLoad[i].pixelData);
+
+		if (texToLoad[i].path != "NULL") 
+			stbi_image_free(texToLoad[i].pixelData);
+		else
+			delete texToLoad[i].pixelData;
 		texToLoad[i].pixelData = nullptr;
+
 		bufferOffset += texToLoad[i].fileSize;
 
 		textures[i] = Texture(texToLoad[i]);
 		VkFormatProperties formatProperties;
 		vkGetPhysicalDeviceFormatProperties(base.physicalDevice, texToLoad[i].format, &formatProperties);
 		if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
+			textures[i].mipLevels = 1;
+		if(!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT))
 			textures[i].mipLevels = 1;
 		//get smallest mip levels of any texture
 		if (textures[i].mipLevels < minMips)
@@ -200,7 +238,7 @@ void TextureLoader::endLoading()
 	vkFreeMemory(base.device, stagingMemory, nullptr);
 
 	//begin command buffer for blitting
-	vkResetCommandBuffer(tempCmdBuffer, 0);
+	vkResetCommandPool(base.device, pool, 0);
 	vkBeginCommandBuffer(tempCmdBuffer, &cmdBeginInfo);
 	
 	//generate mipmaps
@@ -213,8 +251,8 @@ void TextureLoader::endLoading()
 
 	for (const auto& tex : textures)
 	{
-		if (tex.mipLevels == 1)
-			continue;
+		//if (tex.mipLevels == 1)
+		//	continue;
 		barrier.image = tex.image;
 		int32_t mipW = tex.width;
 		int32_t mipH = tex.height;

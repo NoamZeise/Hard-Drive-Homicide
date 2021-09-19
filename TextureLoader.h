@@ -17,9 +17,10 @@
 #include "typeStructs.h"
 #include "vkhelper.h"
 
+const int MAX_TEXTURES_SUPPORTED = 200;//match in shader
+
 struct TempTexture
 {
-	
 	std::string path;
 	unsigned char* pixelData;
 	int width;
@@ -53,6 +54,7 @@ public:
 	TextureLoader(Base base, VkCommandPool pool);
 	~TextureLoader();
 	uint32_t loadTexture(std::string path);
+	uint32_t loadTexture(unsigned char* data, int width, int height, int nrChannels);
 	VkImageView getImageView(uint32_t texID);
 	void endLoading();
 

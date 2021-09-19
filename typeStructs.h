@@ -102,6 +102,7 @@ struct vectPushConstants
 struct fragPushConstants
 {
 	glm::vec4 colour;
+	glm::vec4 texOffset;
 	uint32_t texID;
 };
 

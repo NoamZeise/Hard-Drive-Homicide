@@ -3,6 +3,7 @@
 #define INPUT_H
 
 
+
 struct Input
 {
 	Input()

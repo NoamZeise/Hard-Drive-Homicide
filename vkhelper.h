@@ -19,7 +19,8 @@
 struct vkhelper
 {
 	static uint32_t findMemoryIndex(VkPhysicalDevice physicalDevice, uint32_t memoryTypeBits, VkMemoryPropertyFlags properties);
-	static glm::mat4 getModel(glm::vec2 pos, glm::vec2 size, float rotate);
+	static glm::mat4 getModel(glm::vec4 drawRect, float rotate);
+	static glm::vec4 getTextureOffset(glm::vec4 drawArea, glm::vec4 textureArea);
 	static void createBufferAndMemory(Base base, VkDeviceSize size, VkBuffer* buffer, VkDeviceMemory* memory,
 		VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 	static void createMemory(Base base, VkDeviceSize size, VkDeviceMemory* memory,
