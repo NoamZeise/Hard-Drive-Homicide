@@ -24,6 +24,8 @@ App::App(int windowWidth, int windowHeight)
 App::~App()
 {
 	delete mRender;
+	delete roboto;
+	delete robotbold;
 	//cleanup glfw
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
@@ -31,8 +33,9 @@ App::~App()
 
 void App::loadAssets()
 {
-	testTex = mRender->loadTexture("textures/leaves.png");
-	testTex2 = mRender->loadTexture("textures/healthBar.png");
+	//TODO load assets
+	roboto = mRender->loadFont("Roboto-Regular.ttf");
+	robotbold = mRender->loadFont("Roboto-Bold.ttf");
 	mRender->endTextureLoad();
 }
 
@@ -61,8 +64,9 @@ void App::draw()
 {
 	mRender->startDraw();
 
-	mRender->DrawSquare(glm::vec2(10, 10), glm::vec2(100, 100), 0, testTex);
-	mRender->DrawSquare(glm::vec2(300, 200), glm::vec2(50, 50), 0, testTex2);
+	//todo draw app
+	mRender->DrawString(roboto, "testing text rendering", glm::vec2(100, 100), 50, 0, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+	mRender->DrawString(robotbold, "testing bold rendering", glm::vec2(100, 300), 50, 0, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 	mRender->endDraw();
 }

@@ -61,12 +61,12 @@ Render::Render(GLFWwindow* window)
 	ubo.proj = glm::ortho(0.0f, (float)mSwapchain.extent.width, 0.0f, (float)mSwapchain.extent.height, -1.0f, 1.0f);
 
 	textureLoader = TextureLoader(mBase, generalCommandPool);
+	textureLoader.loadTexture("error.png");
 }
 
 Render::~Render()
 {
 	vkQueueWaitIdle(mBase.queue.graphicsPresentQueue);
-
 	textureLoader.~TextureLoader();
 	destroySwapchainComponents();
 	vkDestroyBuffer(mBase.device, mMemory.vertexBuffer, nullptr);
@@ -200,10 +200,31 @@ uint32_t Render::loadTexture(std::string filepath)
 	return textureLoader.loadTexture(filepath);
 }
 
+Font* Render::loadFont(std::string filepath)
+{
+	try
+	{
+		return new Font(filepath, &textureLoader);
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+		return nullptr;
+	}
+}
+
 void Render::endTextureLoad()
 {
 	textureLoader.endLoading();
 	prepareFragmentDescriptorSets();
+
+	fragPushConstants fps{
+		glm::vec4(1, 1, 1, 1),
+		glm::vec4(0, 0, 1, 1),
+		0
+	};
+	vkCmdPushConstants(mSwapchain.frameData[img].commandBuffer, mPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT,
+		sizeof(vectPushConstants), sizeof(fragPushConstants), &fps);
 }
 
 void Render::startDraw()
@@ -365,29 +386,80 @@ void Render::resize()
 	vkDeviceWaitIdle(mBase.device);
 }
 
-void Render::DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, glm::vec4 colour, uint32_t texID)
+void Render::DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, uint32_t texID)
+{
+	DrawSquare(drawRect, rotate, colour, glm::vec4(0, 0, drawRect.z, drawRect.w), texID);
+}
+
+void Render::DrawSquare(glm::vec4 drawRect, float rotate, uint32_t texID)
+{
+	DrawSquare(drawRect, rotate, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), texID);
+}
+
+void Render::DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, glm::vec4 textureRect, uint32_t texID)
 {
 	//push constants
 	vectPushConstants vps{};
 	vps.model = glm::mat4(1.0f);
-	vps.model = vkhelper::getModel(position, size, rotate);
+	vps.model = vkhelper::getModel(drawRect, rotate);
 	vkCmdPushConstants(mSwapchain.frameData[img].commandBuffer, mPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT,
 		0, sizeof(vectPushConstants), &vps);
 
 	fragPushConstants fps{
 		colour,
+		glm::vec4(0, 0, 1, 1),
 		texID
 	};
-	vkCmdPushConstants(mSwapchain.frameData[img].commandBuffer, mPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT,
-		sizeof(vectPushConstants), sizeof(fragPushConstants), &fps);
+	fps.texOffset = vkhelper::getTextureOffset(drawRect, textureRect);
+	//vkCmdPushConstants(mSwapchain.frameData[img].commandBuffer, mPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT,
+	//	sizeof(vectPushConstants), sizeof(fragPushConstants), &fps);
 
 	//draw verticies	
 	vkCmdDrawIndexed(mSwapchain.frameData[img].commandBuffer, static_cast<uint32_t>(quadInds.size()), 1, 0, 0, 0);
 }
 
-void Render::DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, uint32_t texID)
+
+void Render::DrawString(Font* font, std::string text, glm::vec2 position, float size, float rotate, glm::vec4 colour)
 {
-	DrawSquare(position, size, rotate, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), texID);
+	if (font == nullptr)
+	{
+		std::cout << "font is NULL" << std::endl;
+		return;
+	}
+	for (std::string::const_iterator c = text.begin(); c != text.end(); c++)
+	{
+		Character* cTex = font->getChar(*c);
+		if (cTex == nullptr)
+			continue;
+		else if (cTex->TextureID != 0) //if character is added but no texture loaded for it (eg space)
+		{
+			glm::vec4 thisPos = glm::vec4(position.x, position.y, 0, 0);
+			thisPos.x += cTex->Bearing.x * size;
+			thisPos.y += (cTex->Size.y - cTex->Bearing.y) * size;
+			thisPos.y -= cTex->Size.y * size;
+
+			thisPos.z = cTex->Size.x * size;
+			thisPos.w = cTex->Size.y * size;
+			thisPos.z /= 1;
+			thisPos.w /= 1;
+
+			DrawSquare(thisPos, 0, colour, cTex->TextureID);
+		}
+		position.x += cTex->Advance * size;
+	}
+}
+
+float Render::measureString(Font* font, std::string text, float size)
+{
+	float sz = 0;
+	for (std::string::const_iterator c = text.begin(); c != text.end(); c++)
+	{
+		Character* cTex = font->getChar(*c);
+		if (cTex == nullptr)
+			continue;
+		sz += cTex->Advance * size;
+	}
+	return sz;
 }
 
 void Render::destroySwapchainComponents()
@@ -492,7 +564,7 @@ void Render::prepareFragmentDescriptorSets()
 
 
 	std::vector<VkDescriptorImageInfo> texInfos(MAX_TEXTURES_SUPPORTED);
-	for (uint32_t i = 0; i < MAX_TEXTURES_SUPPORTED; ++i)
+	for (uint32_t i = 0; i < MAX_TEXTURES_SUPPORTED; i++)
 	{
 		texInfos[i].sampler = nullptr;
 		texInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

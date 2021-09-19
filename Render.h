@@ -20,6 +20,7 @@
 #include "vkhelper.h"
 #include "typeStructs.h"
 #include "TextureLoader.h"
+#include "Font.h"
 
 class Render
 {
@@ -27,11 +28,15 @@ public:
 	Render(GLFWwindow* window);
 	~Render();
 	uint32_t loadTexture(std::string filepath);
+	Font* loadFont(std::string filepath);
 	void endTextureLoad();
 	void startDraw();
 	void endDraw();
-	void DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, glm::vec4 colour, uint32_t texID);
-	void DrawSquare(glm::vec2 position, glm::vec2 size, float rotate, uint32_t texID);
+	void DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, uint32_t texID);
+	void DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, glm::vec4 textureOffsetRect, uint32_t texID);
+	void DrawSquare(glm::vec4 drawRect, float rotate, uint32_t texID);
+	void DrawString(Font* font, std::string text, glm::vec2 position, float size, float rotate, glm::vec4 colour);
+	float measureString(Font* font, std::string text, float size);
 
 	bool framebufferResized = false;
 private:

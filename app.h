@@ -16,6 +16,7 @@
 
 #include "Render.h"
 #include "input.h"
+#include "Audio.h"
 
 class App
 {
@@ -41,7 +42,10 @@ private:
 	GLFWwindow* mWindow;
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;
+	Audio audio;
 
+	Font* roboto;
+	Font* robotbold;
 	uint32_t testTex;
 	uint32_t testTex2;
 };

@@ -43,3 +43,7 @@ x64/Release/textureLoader.obj
 x64/Release/vc142.pdb
 x64/Release/vkhelper.obj
 x64/Release/vkinit.obj
+x64/Debug/Font.obj
+x64/Debug/Audio.obj
+vert.spv
+frag.spv

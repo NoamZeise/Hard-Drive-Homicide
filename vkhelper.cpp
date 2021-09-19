@@ -15,19 +15,33 @@ uint32_t vkhelper::findMemoryIndex(VkPhysicalDevice physicalDevice, uint32_t mem
 	throw std::runtime_error("failed to find suitable memory type");
 }
 
-glm::mat4 vkhelper::getModel(glm::vec2 pos, glm::vec2 size, float rotate)
+glm::mat4 vkhelper::getModel(glm::vec4 drawRect, float rotate)
 {
 	glm::mat4 model = glm::mat4(1.0f);
 
-	model = glm::translate(model, glm::vec3(pos, 0.0f)); //translate object by position
+	model = glm::translate(model, glm::vec3(drawRect.x, drawRect.y, 0.0f)); //translate object by position
 	//rotate object
-	model = glm::translate(model, glm::vec3(0.5 * size.x, 0.5 * size.y, 0.0)); // move object by half its size, so rotates around centre
+	model = glm::translate(model, glm::vec3(0.5 * drawRect.z, 0.5 * drawRect.w, 0.0)); // move object by half its size, so rotates around centre
 	model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0, 0.0, 1.0));//then do rotation
-	model = glm::translate(model, glm::vec3(-0.5 * size.x, -0.5 * size.y, 0.0)); //then translate back to original position
+	model = glm::translate(model, glm::vec3(-0.5 * drawRect.z, -0.5 * drawRect.w, 0.0)); //then translate back to original position
 
-	model = glm::scale(model, glm::vec3(size, 1.0f)); //then scale
+	model = glm::scale(model, glm::vec3(drawRect.z, drawRect.w, 1.0f)); //then scale
 
 	return model;
+}
+
+glm::vec4 vkhelper::getTextureOffset(glm::vec4 drawArea, glm::vec4 textureArea)
+{
+	if (drawArea.z == textureArea.z && textureArea.x == 0 && textureArea.y == 0)
+		return glm::vec4(0, 0, 1, 1);
+
+	glm::vec4 offset = glm::vec4(0, 0, 1, 1);
+	offset.x = -(textureArea.x) / drawArea.z;
+	offset.y = -(textureArea.y) / drawArea.w;
+	offset.z = drawArea.z / textureArea.z;
+	offset.w = drawArea.w / textureArea.w;
+
+	return offset;
 }
 
 
