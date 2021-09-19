@@ -450,8 +450,8 @@ void initVulkan::graphicsPipeline(VkDevice device, Pipeline* pipeline, SwapChain
 
 
 	//load shader modules
-	auto vertexShaderModule = loadShaderModule(device, "vert.spv");
-	auto fragmentShaderModule = loadShaderModule(device, "frag.spv");
+	auto vertexShaderModule = loadShaderModule(device, "shaders/vert.spv");
+	auto fragmentShaderModule = loadShaderModule(device, "shaders/frag.spv");
 
 	//create pipeline layout
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };

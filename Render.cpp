@@ -61,7 +61,7 @@ Render::Render(GLFWwindow* window)
 	mUbo.proj = glm::ortho(0.0f, (float)mSwapchain.extent.width, 0.0f, (float)mSwapchain.extent.height, -1.0f, 1.0f);
 
 	mTextureLoader = TextureLoader(mBase, mGeneralCommandPool);
-	mTextureLoader.loadTexture("error.png");
+	mTextureLoader.loadTexture("textures/error.png");
 }
 
 Render::~Render()
