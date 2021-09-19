@@ -217,14 +217,6 @@ void Render::endTextureLoad()
 {
 	textureLoader.endLoading();
 	prepareFragmentDescriptorSets();
-
-	fragPushConstants fps{
-		glm::vec4(1, 1, 1, 1),
-		glm::vec4(0, 0, 1, 1),
-		0
-	};
-	vkCmdPushConstants(mSwapchain.frameData[img].commandBuffer, mPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT,
-		sizeof(vectPushConstants), sizeof(fragPushConstants), &fps);
 }
 
 void Render::startDraw()
@@ -411,8 +403,8 @@ void Render::DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, glm:
 		texID
 	};
 	fps.texOffset = vkhelper::getTextureOffset(drawRect, textureRect);
-	//vkCmdPushConstants(mSwapchain.frameData[img].commandBuffer, mPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT,
-	//	sizeof(vectPushConstants), sizeof(fragPushConstants), &fps);
+	vkCmdPushConstants(mSwapchain.frameData[img].commandBuffer, mPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT,
+		sizeof(vectPushConstants), sizeof(fragPushConstants), &fps);
 
 	//draw verticies	
 	vkCmdDrawIndexed(mSwapchain.frameData[img].commandBuffer, static_cast<uint32_t>(quadInds.size()), 1, 0, 0, 0);
