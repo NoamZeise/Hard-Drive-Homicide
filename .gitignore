@@ -47,3 +47,6 @@ x64/Debug/Font.obj
 x64/Debug/Audio.obj
 vert.spv
 frag.spv
+x64/Release/Font.obj
+x64/Release/Audio.obj
+ladyblue.mp3

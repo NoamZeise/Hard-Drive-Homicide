@@ -27,8 +27,8 @@ class Render
 public:
 	Render(GLFWwindow* window);
 	~Render();
-	uint32_t loadTexture(std::string filepath);
-	Font* loadFont(std::string filepath);
+	uint32_t LoadTexture(std::string filepath);
+	Font* LoadFont(std::string filepath);
 	void endTextureLoad();
 	void startDraw();
 	void endDraw();
@@ -36,7 +36,7 @@ public:
 	void DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, glm::vec4 textureOffsetRect, uint32_t texID);
 	void DrawSquare(glm::vec4 drawRect, float rotate, uint32_t texID);
 	void DrawString(Font* font, std::string text, glm::vec2 position, float size, float rotate, glm::vec4 colour);
-	float measureString(Font* font, std::string text, float size);
+	float MeasureString(Font* font, std::string text, float size);
 
 	bool framebufferResized = false;
 private:
@@ -49,26 +49,27 @@ private:
 	VkRenderPass mRenderPass;
 	Pipeline mPipeline;
 	memoryObjects mMemory;
-	VkCommandPool generalCommandPool;
-	VkCommandBuffer transferCommandBuffer;
-	VkDescriptorPool descPool;
-	DescriptorSets viewprojDS;
-	VkSampler texFragSampler;
-	DescriptorSets texturesDS;
-	TextureLoader textureLoader;
+	VkCommandPool mGeneralCommandPool;
+	VkCommandBuffer mTransferCommandBuffer;
+	VkDescriptorPool mDescriptorPool;
+	DescriptorSets mViewprojDS;
+	VkSampler mTexFragSampler;
+	DescriptorSets mTexturesDS;
+	TextureLoader mTextureLoader;
 
-	bool begunDraw = false;
-	uint32_t img;
-	VkSemaphore imgAquireSem;
-	viewProjectionBufferObj ubo;
+	bool mBegunDraw = false;
+	bool mFinishedLoadingTextures = false;
+	uint32_t mImg;
+	VkSemaphore mImgAquireSem;
+	viewProjectionBufferObj mUbo;
 
-	std::vector<Vertex> quadVerts = {
+	std::vector<Vertex> mQuadVerts = {
 		{{0.0f, 0.0f}, {0.0f, 0.0f}},
 		{{1.0f, 0.0f}, {1.0f, 0.0f}},
 		{{1.0f, 1.0f}, {1.0f, 1.0f}},
 		{{0.0f, 1.0f}, {0.0f, 1.0f}},
 	};
-	std::vector<uint32_t> quadInds = { 0, 1, 2, 2, 3, 0 };
+	std::vector<uint32_t> mQuadInds = { 0, 1, 2, 2, 3, 0 };
 
 	void loadDataToGpu();
 	void copyDataToLocalGPUMemory();

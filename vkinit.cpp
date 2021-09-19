@@ -607,7 +607,7 @@ void initVulkan::fillFrameData(VkDevice device, FrameData* frame, uint32_t graph
 	//create command pool
 	VkCommandPoolCreateInfo commandPoolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 	commandPoolInfo.queueFamilyIndex = graphicsQueueIndex;
-	commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	//commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &frame->commandPool) != VK_SUCCESS)
 		throw std::runtime_error("failed to create command buffer");
 

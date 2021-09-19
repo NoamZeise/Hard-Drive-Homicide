@@ -24,8 +24,6 @@ App::App(int windowWidth, int windowHeight)
 App::~App()
 {
 	delete mRender;
-	delete roboto;
-	delete robotbold;
 	//cleanup glfw
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
@@ -34,8 +32,7 @@ App::~App()
 void App::loadAssets()
 {
 	//TODO load assets
-	roboto = mRender->loadFont("Roboto-Regular.ttf");
-	robotbold = mRender->loadFont("Roboto-Bold.ttf");
+
 	mRender->endTextureLoad();
 }
 
@@ -58,15 +55,17 @@ void App::resize(int windowWidth, int windowHeight)
 void App::update()
 {
 	glfwPollEvents();
+
+	//TODO update app
+
+	previousInput = input;
 }
 
 void App::draw()
 {
 	mRender->startDraw();
 
-	//todo draw app
-	mRender->DrawString(roboto, "testing text rendering", glm::vec2(100, 100), 50, 0, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
-	mRender->DrawString(robotbold, "testing bold rendering", glm::vec2(100, 300), 50, 0, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	//TODO draw app
 
 	mRender->endDraw();
 }

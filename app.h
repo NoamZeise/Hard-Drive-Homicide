@@ -42,12 +42,8 @@ private:
 	GLFWwindow* mWindow;
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;
-	Audio audio;
 
-	Font* roboto;
-	Font* robotbold;
-	uint32_t testTex;
-	uint32_t testTex2;
+	Input previousInput;
 };
 
 #endif

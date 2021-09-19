@@ -116,11 +116,13 @@ void TextureLoader::endLoading()
 	{
 		//copy texture from pixel data to mappable gpu memory
 		memcpy(static_cast<char*>(pMem) + bufferOffset, texToLoad[i].pixelData, texToLoad[i].fileSize);
-		if (texToLoad[i].path != "NULL")
-		{
+
+		if (texToLoad[i].path != "NULL") 
 			stbi_image_free(texToLoad[i].pixelData);
-			texToLoad[i].pixelData = nullptr;
-		}
+		else
+			delete texToLoad[i].pixelData;
+		texToLoad[i].pixelData = nullptr;
+
 		bufferOffset += texToLoad[i].fileSize;
 
 		textures[i] = Texture(texToLoad[i]);
@@ -236,7 +238,7 @@ void TextureLoader::endLoading()
 	vkFreeMemory(base.device, stagingMemory, nullptr);
 
 	//begin command buffer for blitting
-	vkResetCommandBuffer(tempCmdBuffer, 0);
+	vkResetCommandPool(base.device, pool, 0);
 	vkBeginCommandBuffer(tempCmdBuffer, &cmdBeginInfo);
 	
 	//generate mipmaps

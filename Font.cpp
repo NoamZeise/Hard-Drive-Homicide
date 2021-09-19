@@ -54,6 +54,7 @@ bool Font::loadCharacter(TextureLoader* textureLoader, FT_Face face, char c)
 		)));
 		return true;
 	}
+
 	unsigned char* buffer = new unsigned char[face->glyph->bitmap.width * face->glyph->bitmap.rows * 4];
 
 	int buffIndex = 0;
