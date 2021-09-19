@@ -1,9 +1,28 @@
 # 2D-Vulkan-Environment
-<h1>WORK IN PROGRESS</h1>
-<h5>A 2D renderer for vulkan, to load textures and display them on freely movable quads. </h5>
+<h5>A 2D renderer for vulkan, ideal for small projects, just add rendering and update code into app.cpp </h5>
 
-At the momement quads can be drawn per frame in arbitrary poisitions. 
-I use uniform buffers to send a view and projection matrix per frame, and I use push constants for per-draw model matricies and solid colour data.
+features so far:
+  
+* Handles loading textures and fonts
+* Draw textured quads in arbitrary positions
+* Draw strings using a loaded font
+* Play audio on windows with a filename
+* Handle keyboard/mouse input from the user
+* Offset texture positions and modify colours
 
-Now I am working on a texture loader to load all the textures before drawing, then I plan to fill out a uniform buffer with an array of textures which can be picked from via
-an index sent through a push constant.
+
+
+
+# dependancies:
+
+* vulkan sdk (i'm using 1.2.189.1) for included libs, validation layers when debugging, glsl to spirv
+* GLFW handles windowing and input
+* GLM handles glsl datatypes and matrix operations
+* freetype2 for font loading
+* stb_image for image loading
+
+libs:
+* freetyped.lib
+* vulkan-1.lib
+* glfw3.lib
+* Winmm.lib (if on windows, for audio)
