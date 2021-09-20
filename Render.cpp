@@ -490,6 +490,12 @@ void Render::updateProjectionMatrix()
 	mUbo.proj = glm::ortho(0.0f, (float)mSwapchain.extent.width / correction, 0.0f, (float)mSwapchain.extent.height / correction, -1.0f, 1.0f);
 }
 
+void Render::setCameraOffset(glm::vec2 offset)
+{
+	mUbo.view = glm::mat4(1.0f);
+	mUbo.view = glm::translate(mUbo.view, glm::vec3(offset, 0));
+}
+
 void Render::destroySwapchainComponents()
 {
 	vkDestroyBuffer(mBase.device, mMemory.viewProj.buffer, nullptr);

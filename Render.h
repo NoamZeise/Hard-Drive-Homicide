@@ -40,6 +40,7 @@ public:
 	void DrawSquare(glm::vec4 drawRect, float rotate, uint32_t texID);
 	void DrawString(Font* font, std::string text, glm::vec2 position, float size, float rotate, glm::vec4 colour);
 	float MeasureString(Font* font, std::string text, float size);
+	void setCameraOffset(glm::vec2 offset);
 	bool framebufferResized = false;
 private:
 	GLFWwindow* mWindow;

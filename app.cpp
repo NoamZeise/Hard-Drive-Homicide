@@ -73,6 +73,17 @@ void App::draw()
 	mRender->endDraw();
 }
 
+glm::vec2 App::correctedPos(glm::vec2 pos)
+{
+	return glm::vec2(pos.x * ((float)TARGET_WIDTH / (float)mWindowWidth), pos.y * ((float)TARGET_HEIGHT / (float)mWindowHeight));
+}
+
+glm::vec2 App::correctedMouse()
+{
+	return correctedPos(glm::vec2(input.X, input.Y));
+}
+
+
 	
 #pragma region GLFW_CALLBACKS
 
