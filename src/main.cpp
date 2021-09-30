@@ -21,6 +21,7 @@ int main()
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-
+	int x = 0;
+	std::cin >> x;
 	return EXIT_SUCCESS;
 }
