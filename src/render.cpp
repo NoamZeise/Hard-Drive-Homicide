@@ -12,6 +12,7 @@ Render::Render(GLFWwindow* window, glm::vec2 target)
 	initRender(window);
 	targetResolution = target;
 	updateProjectionMatrix();
+	setCameraOffset(glm::vec2(0, 0));
 }
 
 
@@ -427,6 +428,7 @@ void Render::DrawSquare(glm::vec4 drawRect, float rotate, glm::vec4 colour, glm:
 
 	//draw verticies
 	vkCmdDrawIndexed(mSwapchain.frameData[mImg].commandBuffer, static_cast<uint32_t>(mQuadInds.size()), 1, 0, 0, 0);
+	 //vkCmdDraw(mSwapchain.frameData[mImg].commandBuffer, 3, 1, 0, 0);
 }
 
 

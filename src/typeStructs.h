@@ -19,9 +19,12 @@
 
 //#define NDEBUG //uncomment for release mode
 
-static bool USE_SRGB = false;
-static bool ENABLE_MIP = false;
-static bool PIXELATED = true; //for pixelated
+const bool USE_SRGB = false;
+const bool ENABLE_MIP = false;
+const bool PIXELATED = false; //for pixelated
+const int TARGET_WIDTH = 800;
+const int TARGET_HEIGHT = 600;
+const bool FIXED_RATIO = false;
 #ifndef NDEBUG
 const bool ERROR_ONLY = false;
 #endif

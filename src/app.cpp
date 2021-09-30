@@ -5,7 +5,7 @@ App::App()
 {
 	//set member variables
 	mWindowWidth = 800;
-	mWindowHeight = 720;
+	mWindowHeight = 600;
 	//init glfw window
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
@@ -77,7 +77,7 @@ void App::draw()
 	mRender->startDraw();
 
 	//TODO draw app
-	mRender->DrawSquare(glm::vec4(-50, -50, 100, 100), 0, 0);
+	mRender->DrawSquare(glm::vec4(10, 10, 200, 150), 0, 0);
 
 	mRender->endDraw();
 }
