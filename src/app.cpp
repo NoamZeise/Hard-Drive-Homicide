@@ -7,9 +7,16 @@ App::App()
 	mWindowWidth = 800;
 	mWindowHeight = 720;
 	//init glfw window
-	glfwInit();
+	glfwSetErrorCallback(error_callback);
+	if (!glfwInit())
+			throw std::runtime_error("failed to initialise glfw!");
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //using vulkan not openGL
 	mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, "Vulkan App", nullptr, nullptr);
+	if(!mWindow)
+	{
+		glfwTerminate();
+		throw std::runtime_error("failed to create glfw window!");
+	}
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 	glfwSetCursorPosCallback(mWindow, mouse_callback);
@@ -25,8 +32,8 @@ App::App()
 
 App::~App()
 {
-			std::cout << "here" << std::endl;
 	delete mRender;
+	mRender = nullptr;
 	//cleanup glfw
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
@@ -70,7 +77,7 @@ void App::draw()
 	mRender->startDraw();
 
 	//TODO draw app
-	mRender->DrawSquare(glm::vec4(10, 10, 100, 100), 0, 0);
+	mRender->DrawSquare(glm::vec4(-50, -50, 100, 100), 0, 0);
 
 	mRender->endDraw();
 }
@@ -84,7 +91,6 @@ glm::vec2 App::correctedMouse()
 {
 	return correctedPos(glm::vec2(input.X, input.Y));
 }
-
 
 
 #pragma region GLFW_CALLBACKS
@@ -124,6 +130,10 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
 			glfwSetWindowMonitor(window, NULL, 100, 100, app->mWindowWidth, app->mWindowHeight, mode->refreshRate);
 		}
 	}
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
+	{
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	}
 	if (key >= 0 && key < 1024)
 	{
 		if (action == GLFW_PRESS)
@@ -153,4 +163,10 @@ void App::mouse_button_callback(GLFWwindow* window, int button, int action, int 
 		}
 	}
 }
+
+void App::error_callback(int error, const char* description)
+{
+    throw std::runtime_error(description);
+}
+
 #pragma endregion

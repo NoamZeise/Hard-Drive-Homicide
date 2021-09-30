@@ -28,6 +28,7 @@ TexFont::~TexFont()
 	for (it = _chars.begin(); it != _chars.end(); it++)
 	{
 		delete it->second;
+		it->second = nullptr;
 	}
 }
 

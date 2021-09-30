@@ -14,6 +14,7 @@ int main()
 		App* app = new App();
 		app->run();
 		delete app;
+		app = nullptr;
 	}
 	catch (const std::exception& e)
 	{

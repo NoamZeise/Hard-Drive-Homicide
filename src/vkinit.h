@@ -19,7 +19,6 @@
 #include "typeStructs.h"
 
 #ifndef NDEBUG
-const bool ERROR_ONLY = true;
 
 const std::array<const char*, 1> OPTIONAL_LAYERS = {
 		"VK_LAYER_KHRONOS_validation"

@@ -17,12 +17,14 @@
 #include <array>
 #include <string>
 
-
-//#define NDEBUG //release mode
+//#define NDEBUG //uncomment for release mode
 
 static bool USE_SRGB = false;
 static bool ENABLE_MIP = false;
 static bool PIXELATED = true; //for pixelated
+#ifndef NDEBUG
+const bool ERROR_ONLY = false;
+#endif
 
 struct QueueFamilies
 {
