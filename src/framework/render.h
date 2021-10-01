@@ -31,7 +31,7 @@ public:
 	Render(GLFWwindow* window, glm::vec2 target);
 	void updateProjectionMatrix();
 	~Render();
-	uint32_t LoadTexture(std::string filepath);
+	Tex LoadTexture(std::string filepath);
 	TexFont* LoadFont(std::string filepath);
 	void endTextureLoad();
 	void startDraw();

@@ -208,7 +208,7 @@ void Render::copyDataToLocalGPUMemory()
 
 }
 
-uint32_t Render::LoadTexture(std::string filepath)
+Tex Render::LoadTexture(std::string filepath)
 {
 	if (mFinishedLoadingTextures)
 		throw std::runtime_error("texture loading has finished already");

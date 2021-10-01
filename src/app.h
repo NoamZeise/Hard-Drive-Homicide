@@ -15,9 +15,10 @@
 
 #include <iostream>
 
-#include "render.h"
-#include "input.h"
-#include "audio.h"
+#include "framework/render.h"
+#include "framework/input.h"
+#include "framework/audio.h"
+#include "framework/vkhelper.h"
 
 class App
 {
@@ -44,6 +45,8 @@ private:
 	glm::vec2 correctedPos(glm::vec2 pos);
 	glm::vec2 correctedMouse();
 
+	TexFont* pixelFont;
+	Tex msgBoxTex;
 	GLFWwindow* mWindow;
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;

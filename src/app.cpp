@@ -4,8 +4,8 @@
 App::App()
 {
 	//set member variables
-	mWindowWidth = 800;
-	mWindowHeight = 600;
+	mWindowWidth = TARGET_WIDTH * 3;
+	mWindowHeight = TARGET_HEIGHT * 3;
 	//init glfw window
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
@@ -17,14 +17,14 @@ App::App()
 		glfwTerminate();
 		throw std::runtime_error("failed to create glfw window!");
 	}
+	if(FIXED_RATIO)
+		glfwSetWindowAspectRatio(mWindow, TARGET_WIDTH, TARGET_HEIGHT);
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 	glfwSetCursorPosCallback(mWindow, mouse_callback);
 	glfwSetScrollCallback(mWindow, scroll_callback);
 	glfwSetKeyCallback(mWindow, key_callback);
 	glfwSetMouseButtonCallback(mWindow, mouse_button_callback);
-	if(FIXED_RATIO)
-		glfwSetWindowAspectRatio(mWindow, TARGET_WIDTH, TARGET_HEIGHT);
 	mRender = new Render(mWindow, glm::vec2(TARGET_WIDTH, TARGET_HEIGHT));
 	loadAssets();
 }
@@ -32,6 +32,7 @@ App::App()
 
 App::~App()
 {
+	delete pixelFont;
 	delete mRender;
 	mRender = nullptr;
 	//cleanup glfw
@@ -42,6 +43,8 @@ App::~App()
 void App::loadAssets()
 {
 	//TODO load assets
+	pixelFont = mRender->LoadFont("textures/dogicapixel.otf");
+	msgBoxTex = mRender->LoadTexture("textures/messageBox.png");
 
 	mRender->endTextureLoad();
 }
@@ -68,6 +71,7 @@ void App::update()
 	glfwPollEvents();
 
 	//TODO update app
+	
 
 	previousInput = input;
 }
@@ -77,7 +81,8 @@ void App::draw()
 	mRender->startDraw();
 
 	//TODO draw app
-	mRender->DrawSquare(glm::vec4(10, 10, 200, 150), 0, 0);
+	mRender->DrawSquare(glm::vec4(0, 0, msgBoxTex.dim.x, msgBoxTex.dim.y), 0, msgBoxTex.ID);
+	mRender->DrawString(pixelFont, "testing", glm::vec2(30, TARGET_HEIGHT - 60), 7, 0, glm::vec4(1, 1, 1, 1));
 
 	mRender->endDraw();
 }

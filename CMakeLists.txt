@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
+set (CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_CXX_FLAGS "-O2 -std=c++11")
+
+set(CMAKE_EXE_LINKER_FLAGS "-v")
+
 project(2D-Vulkan-Environment VERSION 1.0)
 
-set (CMAKE_CXX_STANDARD 11)
 
 #packages
 find_package(Vulkan REQUIRED)
@@ -17,13 +22,13 @@ if (UNIX)
     find_package(Freetype REQUIRED)
 endif()
 
-SET(CMAKE_CXX_FLAGS "-O2 -std=c++11")
-
-SET(CMAKE_EXE_LINKER_FLAGS "-v")
 
 #add executables
 file(GLOB SOURCES src/*)
-add_executable(2D-Vulkan-Environment ${SOURCES})
+file(GLOB FRAMEWORK src/framework/*)
+add_executable(2D-Vulkan-Environment ${SOURCES}
+                                    ${FRAMEWORK})
+
 
 
 #link

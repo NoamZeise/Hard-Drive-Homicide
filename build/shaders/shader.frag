@@ -20,5 +20,8 @@ void main()
     coord.y *= pc.texOffset.w;
     coord.x += pc.texOffset.x;
     coord.y += pc.texOffset.y;
-    outColour = texture(sampler2D(textures[pc.texID], texSamp), coord) * pc.colour;
+    vec4 col = texture(sampler2D(textures[pc.texID], texSamp), coord) * pc.colour;
+    if(col.w == 0)
+        discard;
+    outColour = col;
 }

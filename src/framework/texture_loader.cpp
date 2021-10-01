@@ -19,7 +19,7 @@ TextureLoader::~TextureLoader()
 	vkFreeMemory(base.device, memory, nullptr);
 }
 
-uint32_t TextureLoader::loadTexture(std::string path)
+Tex TextureLoader::loadTexture(std::string path)
 {
 	texToLoad.push_back({ path });
 	TempTexture* tex = &texToLoad.back();
@@ -58,7 +58,7 @@ uint32_t TextureLoader::loadTexture(std::string path)
 	default:
 		throw std::runtime_error("texture at " + path + " has an unsupported number of channels");
 	}
-	return texToLoad.size() - 1;
+	return Tex{(unsigned int)(texToLoad.size() - 1), glm::vec2(tex->width, tex->height)};
 }
 
 uint32_t TextureLoader::loadTexture(unsigned char* data, int width, int height, int nrChannels)

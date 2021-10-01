@@ -21,10 +21,10 @@
 
 const bool USE_SRGB = false;
 const bool ENABLE_MIP = false;
-const bool PIXELATED = false; //for pixelated
-const int TARGET_WIDTH = 800;
-const int TARGET_HEIGHT = 600;
-const bool FIXED_RATIO = false;
+const bool PIXELATED = true; //for pixelated
+const int TARGET_WIDTH = 256;
+const int TARGET_HEIGHT = 224;
+const bool FIXED_RATIO = true;
 #ifndef NDEBUG
 const bool ERROR_ONLY = false;
 #endif
@@ -157,6 +157,12 @@ struct DescriptorSets
 	VkDescriptorPool pool;
 	VkDescriptorSetLayout layout;
 	std::vector<VkDescriptorSet> sets;
+};
+
+struct Tex
+{
+	unsigned int ID = 0;
+	glm::vec2 dim = glm::vec2(0, 0);
 };
 
 

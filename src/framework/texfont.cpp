@@ -59,12 +59,16 @@ bool TexFont::loadCharacter(TextureLoader* textureLoader, FT_Face face, char c)
 	unsigned char* buffer = new unsigned char[face->glyph->bitmap.width * face->glyph->bitmap.rows * 4];
 
 	int buffIndex = 0;
+	char blank = 0x00;
 	for (size_t i = 0; i < face->glyph->bitmap.width * face->glyph->bitmap.rows; i++)
 	{
+		//std::cout << (int)((face->glyph->bitmap.buffer + i)[0]) << std::endl;
 		std::memcpy(buffer + buffIndex++, face->glyph->bitmap.buffer + i, 1);
 		std::memcpy(buffer + buffIndex++, face->glyph->bitmap.buffer + i, 1);
 		std::memcpy(buffer + buffIndex++, face->glyph->bitmap.buffer + i, 1);
 		std::memcpy(buffer + buffIndex++, face->glyph->bitmap.buffer + i, 1);
+		if((char)((face->glyph->bitmap.buffer + i)[0])  != (char)0xFF)
+			std::memcpy(buffer + buffIndex - 1, &blank, 1);
 	}
 
 	unsigned int texture = textureLoader->loadTexture(
