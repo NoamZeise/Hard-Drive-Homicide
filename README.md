@@ -17,6 +17,7 @@ features so far:
 
 * vulkan sdk (i'm using 1.2.189.1) for included libs, validation layers when debugging, glsl to spirv
 * GLFW handles windowing and input
+* (on UNIX) only setup for X11 with glfw
 * GLM handles glsl datatypes and matrix operations
 * freetype2 for font loading (comes with repo)
 * uses stb_image.h for image loading (comes with repo)
