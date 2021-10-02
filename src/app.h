@@ -7,11 +7,6 @@
 #define GLFW_INCLUDE_VULKAN
 #endif
 #include <GLFW/glfw3.h>
-#ifndef GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#endif
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 
@@ -19,6 +14,12 @@
 #include "framework/input.h"
 #include "framework/audio.h"
 #include "framework/vkhelper.h"
+#include "game/_glm.h"
+#include "game/timer.h"
+#include "game/simpleInput.h"
+#include "messageManager.h"
+#include "game/camera.h"
+#include "map.h"
 
 class App
 {
@@ -45,12 +46,14 @@ private:
 	glm::vec2 correctedPos(glm::vec2 pos);
 	glm::vec2 correctedMouse();
 
-	TexFont* pixelFont;
-	Tex msgBoxTex;
+	Timer timer;
+	Btn btn;
 	GLFWwindow* mWindow;
 	Render* mRender;
 	int mWindowWidth, mWindowHeight;
-	Input previousInput;
+	MessageManager msgManager;
+	Camera camera;
+	Map map;
 
 };
 

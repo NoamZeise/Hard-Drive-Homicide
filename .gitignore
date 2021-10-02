@@ -106,3 +106,6 @@ build/2D-Vulkan-Environment.dir/Debug/2D-Vulka.B3F9E580.tlog/CustomBuild.write.1
 build/2D-Vulkan-Environment.dir/Debug/2D-Vulka.B3F9E580.tlog/link.command.1.tlog
 build/2D-Vulkan-Environment.dir/Debug/2D-Vulka.B3F9E580.tlog/link.read.1.tlog
 build/2D-Vulkan-Environment.dir/Debug/2D-Vulka.B3F9E580.tlog/link.write.1.tlog
+build/2D-Vulkan-Environment.dir/Debug/camera.obj
+build/2D-Vulkan-Environment.dir/Debug/map.obj
+build/2D-Vulkan-Environment.dir/Debug/messageManager.obj

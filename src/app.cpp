@@ -32,7 +32,6 @@ App::App()
 
 App::~App()
 {
-	delete pixelFont;
 	delete mRender;
 	mRender = nullptr;
 	//cleanup glfw
@@ -43,9 +42,9 @@ App::~App()
 void App::loadAssets()
 {
 	//TODO load assets
-	pixelFont = mRender->LoadFont("textures/dogicapixel.otf");
-	msgBoxTex = mRender->LoadTexture("textures/messageBox.png");
-
+	msgManager.LoadTextures(mRender);
+	map = Map(*mRender);
+	map.genMap(10, 10);
 	mRender->endTextureLoad();
 }
 
@@ -69,20 +68,21 @@ void App::resize(int windowWidth, int windowHeight)
 void App::update()
 {
 	glfwPollEvents();
+	btn.press.Update(input.Keys);
 
 	//TODO update app
-	
+	msgManager.Update(timer, btn);
 
-	previousInput = input;
+	btn.prev = btn.press;
 }
 
 void App::draw()
 {
 	mRender->startDraw();
 
-	//TODO draw app
-	mRender->DrawSquare(glm::vec4(0, 0, msgBoxTex.dim.x, msgBoxTex.dim.y), 0, msgBoxTex.ID);
-	mRender->DrawString(pixelFont, "testing", glm::vec2(30, TARGET_HEIGHT - 60), 7, 0, glm::vec4(1, 1, 1, 1));
+	//TODO draw app	
+	map.Draw(*mRender);
+	msgManager.Draw();
 
 	mRender->endDraw();
 }

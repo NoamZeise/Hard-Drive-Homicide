@@ -277,7 +277,7 @@ void initVulkan::swapChain(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 			modeChosen = true;
 		}
 	}
-	if (!modeChosen)
+	if (!modeChosen || VSYNC)
 		presentMode = VK_PRESENT_MODE_FIFO_KHR; //guarenteed
 
 	//find a supporte transform

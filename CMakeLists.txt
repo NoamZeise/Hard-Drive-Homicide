@@ -26,8 +26,10 @@ endif()
 #add executables
 file(GLOB SOURCES src/*)
 file(GLOB FRAMEWORK src/framework/*)
+file(GLOB GAME src/game/*)
 add_executable(2D-Vulkan-Environment ${SOURCES}
-                                    ${FRAMEWORK})
+                                    ${FRAMEWORK}
+                                    ${GAME})
 
 
 

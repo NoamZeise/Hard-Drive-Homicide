@@ -17,14 +17,13 @@
 #include <array>
 #include <string>
 
-//#define NDEBUG //uncomment for release mode
+#define NDEBUG //uncomment for release mode
 
 const bool USE_SRGB = false;
 const bool ENABLE_MIP = false;
 const bool PIXELATED = true; //for pixelated
-const int TARGET_WIDTH = 256;
-const int TARGET_HEIGHT = 224;
 const bool FIXED_RATIO = true;
+const bool VSYNC = true;
 #ifndef NDEBUG
 const bool ERROR_ONLY = false;
 #endif
