@@ -32,8 +32,10 @@ App::App()
 
 App::~App()
 {
+	delete enemy;
+	delete player;
+	delete bullet;
 	delete mRender;
-	mRender = nullptr;
 	//cleanup glfw
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
@@ -44,7 +46,15 @@ void App::loadAssets()
 	//TODO load assets
 	msgManager.LoadTextures(mRender);
 	map = Map(*mRender);
-	map.genMap(10, 10);
+	map.genMap(20, 20);
+	camera.resize(glm::vec4(0, 0, 20* TILE_WIDTH, 20 * TILE_HEIGHT));
+	player = new Player(glm::vec2(100, 100), mRender->LoadTexture("textures/sprites/player.png"));
+	bullet = new Bullet(glm::vec2(0, 0), mRender->LoadTexture("textures/sprites/bullet.png"));
+	enemy = new Enemy(glm::vec2(0, 0), mRender->LoadTexture("textures/sprites/enemy.png"));
+
+	Enemy e = *enemy;
+	e.setPosition({40, 40});
+	enemies.push_back(e);
 	mRender->endTextureLoad();
 }
 
@@ -52,7 +62,9 @@ void App::run()
 {
 	while (!glfwWindowShouldClose(mWindow))
 	{
+		preUpdate();
 		update();
+		postUpdate();
 		draw();
 	}
 }
@@ -65,14 +77,26 @@ void App::resize(int windowWidth, int windowHeight)
 		mRender->framebufferResized = true;
 }
 
-void App::update()
+void App::preUpdate()
 {
 	glfwPollEvents();
 	btn.press.Update(input.Keys);
+}
 
-	//TODO update app
+void App::update()
+{
 	msgManager.Update(timer, btn);
+	playerUpdate();
+	enemyUpdate();
+	bulletUpdate();
+	collisionUpdate();
+}
 
+void App::postUpdate()
+{
+	camera.target(player->rectangle());
+	mRender->setCameraOffset(camera.getCameraOffset());
+	timer.Update();
 	btn.prev = btn.press;
 }
 
@@ -82,6 +106,11 @@ void App::draw()
 
 	//TODO draw app	
 	map.Draw(*mRender);
+	for(auto& b : bullets)
+		b.Draw(*mRender);
+	for(auto& e : enemies)
+		e.Draw(*mRender);
+	player->Draw(*mRender);
 	msgManager.Draw();
 
 	mRender->endDraw();
@@ -94,7 +123,94 @@ glm::vec2 App::correctedPos(glm::vec2 pos)
 
 glm::vec2 App::correctedMouse()
 {
-	return correctedPos(glm::vec2(input.X, input.Y));
+	auto offset = camera.getCameraOffset();
+	auto correct = correctedPos(glm::vec2(input.X, input.Y));
+	return {correct.x - offset.x, correct.y - offset.y};
+}
+
+void App::playerUpdate()
+{
+	player->Control(btn);
+	player->Update(timer);
+	if(input.Buttons[GLFW_MOUSE_BUTTON_LEFT])
+	{
+		if(player->Shoot())
+		{
+			AddBullet(*player, correctedMouse(), true);
+		}
+	}
+}
+
+void App::enemyUpdate()
+{
+	for(int i = 0; i < enemies.size(); i++)
+	{
+		enemies[i].Movement(player->getPos());
+		enemies[i].Update(timer);
+		if(enemies[i].Shoot())
+		{
+			AddBullet(enemies[i], player->getPos(), false);
+		}
+		if(enemies[i].isRemoved())
+			enemies.erase(enemies.begin() + i--);
+	}
+}
+void App::bulletUpdate()
+{
+	for(int i = 0; i < bullets.size(); i++)
+	{
+		bullets[i].Update(timer);
+		if(bullets[i].isRemoved())
+			bullets.erase(bullets.begin() + i--);
+	}
+}
+
+void App::collisionUpdate()
+{
+	//bullet collision
+	for(auto &b : bullets)
+	{
+		if(b.isPlayer())
+		{
+			for(auto &e : enemies)
+			{
+				if(gamehelper::colliding(b.rectangle(), e.rectangle()))
+				{
+					b.Damage(1);
+					e.Damage(1);
+					continue;
+				}
+			}
+		}
+		else if(gamehelper::colliding(b.rectangle(), player->rectangle()))
+		{
+				player->Damage(1);
+				b.Damage(1);
+		}
+		
+		if(map.inWall(b.rectangle()))
+			b.rollbackPos();
+	}
+
+	//map collisions
+	if(map.inWall(player->rectangle()))
+		player->rollbackPos();
+	for(auto &e : enemies)
+		if(map.inWall(e.rectangle()))
+			e.rollbackPos();
+}
+
+
+void App::AddBullet(Actor &actor, glm::vec2 destination, bool isPlayer)
+{
+	bullets.push_back(*bullet);
+	bullets.back().setOwner(isPlayer);
+	glm::vec4 rect = actor.rectangle();
+	glm::vec2 bPos
+		{rect.x + (rect.z / 2) - (bullets.back().rectangle().z / 2),
+		 rect.y + (rect.w / 2) - (bullets.back().rectangle().w / 2)};
+	bullets.back().setVelocity( gamehelper::relativeVel(bPos, destination, actor.getBulletSpeed()));
+	bullets.back().setPosition(bPos);
 }
 
 
@@ -164,7 +280,7 @@ void App::mouse_button_callback(GLFWwindow* window, int button, int action, int 
 		}
 		else if (action == GLFW_RELEASE)
 		{
-			app->input.Buttons[button] = true;
+			app->input.Buttons[button] = false;
 		}
 	}
 }

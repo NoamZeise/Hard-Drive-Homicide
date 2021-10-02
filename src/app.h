@@ -19,7 +19,10 @@
 #include "game/simpleInput.h"
 #include "messageManager.h"
 #include "game/camera.h"
+#include "game/gamehelper.h"
 #include "map.h"
+#include "sprite.h"
+#include "actors.h"
 
 class App
 {
@@ -43,6 +46,13 @@ public:
 
 	Input input;
 private:
+	void preUpdate();
+	void postUpdate();
+	void playerUpdate();
+	void enemyUpdate();
+	void bulletUpdate();
+	void collisionUpdate();
+	void AddBullet(Actor &actor, glm::vec2 destination, bool isPlayer);
 	glm::vec2 correctedPos(glm::vec2 pos);
 	glm::vec2 correctedMouse();
 
@@ -54,6 +64,12 @@ private:
 	MessageManager msgManager;
 	Camera camera;
 	Map map;
+
+	Player* player;
+	std::vector<Enemy> enemies;
+	Enemy* enemy;
+	std::vector<Bullet> bullets;
+	Bullet* bullet;
 
 };
 

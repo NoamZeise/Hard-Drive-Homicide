@@ -12,7 +12,6 @@ public:
 	Camera() {}
 	Camera(glm::vec4 worldSize);
 	void resize(glm::vec4 worldSize);
-	void Update(Btn& btn, Timer& timer);
 	glm::vec2 getCameraOffset() { return offset; }
 	glm::vec4 getRect()
 	{
@@ -24,7 +23,6 @@ private:
 	glm::vec4 worldSize;
 	glm::vec2 offset = glm::vec2(0, 0);
 
-	glm::vec4 getTileRect(int x, int y);
 	void correct();
 };
 
