@@ -20,6 +20,7 @@
 #include "messageManager.h"
 #include "game/camera.h"
 #include "game/gamehelper.h"
+#include "game/gameRandom.h"
 #include "map.h"
 #include "sprite.h"
 #include "actors.h"
@@ -53,10 +54,12 @@ private:
 	void bulletUpdate();
 	void collisionUpdate();
 	void AddBullet(Actor &actor, glm::vec2 destination, bool isPlayer);
+	void nextLevel();
 	glm::vec2 correctedPos(glm::vec2 pos);
 	glm::vec2 correctedMouse();
 
 	Timer timer;
+	Random random;
 	Btn btn;
 	GLFWwindow* mWindow;
 	Render* mRender;
@@ -64,13 +67,18 @@ private:
 	MessageManager msgManager;
 	Camera camera;
 	Map map;
+	const int STARTING_LEVEL_SIZE = 10;
+	int levelSize = STARTING_LEVEL_SIZE;
+	float level = 0;
 
 	Player* player;
 	std::vector<Enemy> enemies;
 	Enemy* enemy;
 	std::vector<Bullet> bullets;
 	Bullet* bullet;
-
+	std::vector<Sprite> drops;
+	Item* hp;
+	Item* upgrade;
 };
 
 #endif

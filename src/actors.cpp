@@ -116,5 +116,18 @@ void Enemy::Update(Timer &timer)
 
 void Enemy::Movement(glm::vec2 playerPos)
 {
-	
+	velocity = gamehelper::relativeVel(position, playerPos, speed); 
+	if(glm::distance(playerPos, position) < distanceToEnemy)
+	{
+		if(orbitRight)
+			velocity = glm::vec2(velocity.y, -velocity.x);
+		else
+			velocity = glm::vec2(-velocity.y, velocity.x);
+	}
+}
+
+void Enemy::rollbackPos()
+{
+	orbitRight = !orbitRight;
+	Actor::rollbackPos();
 }

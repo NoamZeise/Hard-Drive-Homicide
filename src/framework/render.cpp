@@ -289,7 +289,7 @@ void Render::startDraw()
 	renderPassInfo.renderArea.offset = { 0, 0 };
 	renderPassInfo.renderArea.extent = mSwapchain.extent;
 	//clear colour -> values for VK_ATTACHMENT_LOAD_OP_CLEAR load operation in colour attachment
-	VkClearValue clearColour = { { { 0.15f, 0.5f, 0.4f, 1.0f } } };
+	VkClearValue clearColour = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
 	renderPassInfo.clearValueCount = 1;
 	renderPassInfo.pClearValues = &clearColour;
 

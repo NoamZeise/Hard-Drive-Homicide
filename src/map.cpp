@@ -5,11 +5,37 @@ Map::Map(Render &render)
 	textures.insert(
 		std::pair<TextureTile, Tex>(TextureTile::Wall, render.LoadTexture("textures/tiles/wall.png")));
 	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::FarWall, render.LoadTexture("textures/tiles/furtherwall.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::Obstacle, render.LoadTexture("textures/tiles/obstacle.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::Obstacle2, render.LoadTexture("textures/tiles/obstacle2.png")));
+	textures.insert(
 		std::pair<TextureTile, Tex>(TextureTile::Ground, render.LoadTexture("textures/tiles/ground.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::LeftG, render.LoadTexture("textures/tiles/leftwalll.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::RightG, render.LoadTexture("textures/tiles/rightwalll.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::TRG, render.LoadTexture("textures/tiles/trwall.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::TLG, render.LoadTexture("textures/tiles/tlwall.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::TopG, render.LoadTexture("textures/tiles/topwall.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::BotG, render.LoadTexture("textures/tiles/botwall.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::BLG, render.LoadTexture("textures/tiles/blwall.png")));
+	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::BRG, render.LoadTexture("textures/tiles/brwall.png")));
 }
 
-void Map::genMap(int width, int height)
+void Map::genMap(int width, int height, float difficulty)
 {
+	map.clear();
+	enemySpawns.clear();
+	playerSpawn = {0, 0};
+	//int enemyCount = difficulty * 5;
 	this->width = width;
 	this->height = height;
 	map.resize(width * height);
@@ -17,30 +43,79 @@ void Map::genMap(int width, int height)
 		for(int x = 0; x < width; x++)
 		{
 			if(x == 0 || x == width - 1 || y == 0 || y == height - 1)
+				setTile(Location{x, y}, TextureTile::FarWall);
+			else if(x == 1 || x == width - 2 || y == 1 || y == height - 2)
 				setTile(Location{x, y}, TextureTile::Wall);
+			else if(x == 2 && y == 2)
+				setTile(Location{x, y}, TextureTile::TLG);
+			else if(x == width - 3 && y == 2)
+				setTile(Location{x, y}, TextureTile::TRG);
+			else if(x == 2 && y == height - 3)
+				setTile(Location{x, y}, TextureTile::BLG);
+			else if(x == width - 3 && y == height - 3)
+				setTile(Location{x, y}, TextureTile::BRG);
+			else if(y == 2)
+				setTile(Location{x, y}, TextureTile::TopG);
+			else if(x == 2)
+				setTile(Location{x, y}, TextureTile::LeftG);
+			else if(x == width - 3)
+				setTile(Location{x, y}, TextureTile::RightG);
+			else if(y == height - 3)
+				setTile(Location{x, y}, TextureTile::BotG);
 			else
+			{
 				setTile(Location{x, y}, TextureTile::Ground);
+			}
 		}
+	int obsCount = (width * height) / 50;
+	while(obsCount > 0)
+	{
+		glm::vec2 loc = glm::vec2(
+			random.PositiveReal() * width * TILE_WIDTH,
+			random.PositiveReal() * height * TILE_HEIGHT);
+		if(!inWall(glm::vec4(loc.x, loc.y, 4, 4)))
+		{
+			if(random.PositiveReal() > 0.5)
+				setTile(Location{(int)(loc.x / TILE_WIDTH), (int)(loc.y / TILE_HEIGHT)}, TextureTile::Obstacle);
+			else
+				setTile(Location{(int)(loc.x / TILE_WIDTH), (int)(loc.y / TILE_HEIGHT)}, TextureTile::Obstacle2);
+			obsCount--;
+		}
+	}
+	while(true)
+	{
+		glm::vec2 loc = glm::vec2(
+			random.PositiveReal() * width * TILE_WIDTH,
+			random.PositiveReal() * height * TILE_HEIGHT);
+		if(!inWall(glm::vec4(loc.x, loc.y, 7, 7)))
+		{
+			playerSpawn = loc;
+			break;
+		}
+	}
+	int enemyCount = difficulty;
+	while(enemyCount > 0)
+	{
+		glm::vec2 loc = glm::vec2(
+			random.PositiveReal() * width * TILE_WIDTH,
+			random.PositiveReal() * height * TILE_HEIGHT);
+		if(!inWall(glm::vec4(loc.x, loc.y, 9, 9)) && !glm::distance(playerSpawn, loc) < 100)
+		{
+			enemySpawns.push_back(loc);
+			enemyCount--;
+		}
+	}
 }
 
-void Map::Draw(Render &render)
+void Map::Draw(Render &render, glm::vec4 cameraRect)
 {
 	for(int y = 0; y < height; y++)
 		for(int x = 0; x < width; x++)
 		{
-			render.DrawSquare(
-				getTileRect(Location{x, y}),
-				0, 
-				textures[getTile(Location{x, y})].ID
-			);
+			glm::vec4 tileRect = getTileRect(Location{x, y});
+			if(gamehelper::colliding(cameraRect, tileRect))
+				render.DrawSquare( tileRect, 0, textures[getTile(Location{x, y})].ID);
 		}
-}
-
-void Map::CompleteMap()
-{
-	map.clear();
-	width = 0;
-	height = 0;
 }
 
 bool Map::inWall(glm::vec4 rect)
@@ -68,9 +143,20 @@ LogicalTile Map::logicalFromTex(TextureTile tile)
 			return LogicalTile::None;
 
 		case TextureTile::Ground:
+		case TextureTile::LeftG:
+		case TextureTile::RightG:
+		case TextureTile::TopG:
+		case TextureTile::BotG:
+		case TextureTile::TLG:
+		case TextureTile::TRG:
+		case TextureTile::BLG:
+		case TextureTile::BRG:
 			return LogicalTile::Ground;
 
 		case TextureTile::Wall:
+		case TextureTile::FarWall:
+		case TextureTile::Obstacle:
+		case TextureTile::Obstacle2:
 			return LogicalTile::Wall;
 	}
 }

@@ -21,7 +21,7 @@ public:
 	void setPosition(glm::vec2 pos) { position = pos; }
 protected:
 	glm::vec2 previousPos{0, 0};
-	int health = 10;
+	int health = 15;
 	glm::vec2 velocity{0, 0};
 	float shootDelay = 700;
 	float shootTimer = 0;
@@ -31,10 +31,13 @@ protected:
 class Player : public Actor
 {
 public:
-	Player(glm::vec2 pos, Tex texture): Actor(pos, texture) {bulletSpeed = 0.25f; shootDelay = 100;}
+	Player(glm::vec2 pos, Tex texture): Actor(pos, texture) 
+	{bulletSpeed = 0.4f; shootDelay = 100; health = MAX_HP;}
 	void Update(Timer &timer) override;
 	void Control(Btn &btn);
+	void Reset() { health = MAX_HP; }
 private:
+	const int MAX_HP = 3;
 	const float FRICTION = 0.9f;
 	const float PLAYER_ACCELERATION = 0.01f;
 	const float PLAYER_DECELERATION = 0.2f;
@@ -48,8 +51,15 @@ public:
 	Enemy(glm::vec2 pos, Tex texture): Actor(pos, texture) {}
 	void Update(Timer &timer) override;
 	void Movement(glm::vec2 playerPos);
-private:
+	void setDtoPlayer(float dist) { distanceToEnemy = dist; }
+	void setFireDelay(float delay, float ratio) { shootDelay = delay; shootTimer = shootDelay * ratio; orbitRight = ratio > 0.5; }
+	void setHealth(int health) { this->health = health; }
+	void rollbackPos() override;
 
+private:
+	float distanceToEnemy = 100.0f;
+	float speed = 0.05f;
+	bool orbitRight = true;
 };
 
 class Bullet : public Actor

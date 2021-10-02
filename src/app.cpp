@@ -32,6 +32,8 @@ App::App()
 
 App::~App()
 {
+	delete hp;
+	delete upgrade;
 	delete enemy;
 	delete player;
 	delete bullet;
@@ -46,15 +48,13 @@ void App::loadAssets()
 	//TODO load assets
 	msgManager.LoadTextures(mRender);
 	map = Map(*mRender);
-	map.genMap(20, 20);
-	camera.resize(glm::vec4(0, 0, 20* TILE_WIDTH, 20 * TILE_HEIGHT));
 	player = new Player(glm::vec2(100, 100), mRender->LoadTexture("textures/sprites/player.png"));
 	bullet = new Bullet(glm::vec2(0, 0), mRender->LoadTexture("textures/sprites/bullet.png"));
 	enemy = new Enemy(glm::vec2(0, 0), mRender->LoadTexture("textures/sprites/enemy.png"));
+	hp = new Item(glm::vec2(0, 0),  mRender->LoadTexture("textures/sprites/hp.png"), Item::Type::HP);
+	upgrade = new Item(glm::vec2(0, 0),  mRender->LoadTexture("textures/sprites/hp.png"), Item::Type::Upgrade);
+	nextLevel();
 
-	Enemy e = *enemy;
-	e.setPosition({40, 40});
-	enemies.push_back(e);
 	mRender->endTextureLoad();
 }
 
@@ -85,6 +85,16 @@ void App::preUpdate()
 
 void App::update()
 {
+	if(enemies.size() == 0)
+		nextLevel();
+	if(player->isRemoved())
+	{
+		enemies.clear();
+		player->Reset();
+		level = 0;
+		levelSize = STARTING_LEVEL_SIZE;
+		nextLevel();
+	}
 	msgManager.Update(timer, btn);
 	playerUpdate();
 	enemyUpdate();
@@ -105,7 +115,8 @@ void App::draw()
 	mRender->startDraw();
 
 	//TODO draw app	
-	map.Draw(*mRender);
+	auto pos = camera.getCameraOffset();
+	map.Draw(*mRender, glm::vec4(-pos.x, -pos.y, TARGET_WIDTH, TARGET_HEIGHT));
 	for(auto& b : bullets)
 		b.Draw(*mRender);
 	for(auto& e : enemies)
@@ -211,6 +222,26 @@ void App::AddBullet(Actor &actor, glm::vec2 destination, bool isPlayer)
 		 rect.y + (rect.w / 2) - (bullets.back().rectangle().w / 2)};
 	bullets.back().setVelocity( gamehelper::relativeVel(bPos, destination, actor.getBulletSpeed()));
 	bullets.back().setPosition(bPos);
+}
+
+void App::nextLevel()
+{
+	level++;
+	levelSize += 3;
+	int width = levelSize;
+	int height = levelSize;
+	map.genMap(width, height, level);
+	camera.resize(glm::vec4(0, 0, width * TILE_WIDTH, height * TILE_HEIGHT));
+	player->setPosition(map.playerSpawn);
+	bullets.clear();
+	for(auto& s : map.enemySpawns)
+	{
+		Enemy e = *enemy;
+		e.setPosition(s);
+		e.setDtoPlayer(100 + (random.Real() * 50));
+		e.setFireDelay(700 + (random.Real() * 100), random.PositiveReal());
+		enemies.push_back(e);
+	}
 }
 
 

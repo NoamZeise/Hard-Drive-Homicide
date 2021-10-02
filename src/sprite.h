@@ -22,4 +22,23 @@ private:
 	Tex texture;
 };
 
+
+class Item : public Sprite
+{
+public:
+	enum Type
+	{
+		None,
+		HP,
+		Upgrade,
+	};
+
+	Item(glm::vec2 pos, Tex texture, Type type) : Sprite(pos, texture) { this->type = type; }
+
+	Type getType() { return type; }
+	void setType(Type type) { this->type = type; }
+private:
+	Type type;
+};
+
 #endif
