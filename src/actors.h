@@ -68,6 +68,9 @@ private:
 	float distanceToEnemy = 100.0f;
 	float speed = 0.05f;
 	bool orbitRight = true;
+	bool collided = false;
+	float bounceTimer = 400;
+	float bounceDelay = 400;
 };
 
 class Bullet : public Actor
@@ -98,10 +101,17 @@ public:
 	void rollbackPos() override {};
 	void Update(Timer &timer) override
 	{
-		auto ratio = (lifetime / lifespan) * 0.5;
-		colour = {ratio, ratio, ratio, 1};
+		auto ratio = (lifetime / lifespan);
+		colour = {
+			(ratio * endCol.x) + ((1 - ratio) * startCol.x),
+			 (ratio * endCol.y) + ((1 - ratio) * startCol.y),
+			  (ratio * endCol.z) + ((1 - ratio) * startCol.z), 1};
 		Bullet::Update(timer);
 	}
+	void setLifespan(float lifespan) { this->lifespan = lifespan; }
+	glm::vec3 startCol{0, 0, 0};
+	glm::vec3 endCol{0.5, 0.5, 0.5};
+
 };
 
 #endif

@@ -116,10 +116,10 @@ void Player::Upgrade(Item::Type type)
 		break;
 	case Item::Type::Shoot:
 		shootDelay *= 0.98f;
-		bulletSpeed += 0.05f;
+		bulletSpeed += 0.025f;
 		break;
 	case Item::Type::Speed:
-		maxSpeed *= 1.1f;
+		maxSpeed += 0.05f;
 		break;
 	}
 }
@@ -159,7 +159,8 @@ void Bullet::setOwner(bool player)
 
 void Enemy::Update(Timer &timer)
 {
-
+	if(collided)
+		bounceTimer += timer.FrameElapsed();
 	Actor::Update(timer);
 }
 
@@ -173,10 +174,19 @@ void Enemy::Movement(glm::vec2 playerPos)
 		else
 			velocity = glm::vec2(-velocity.y, velocity.x);
 	}
+	else if(bounceTimer < bounceDelay && collided)
+	{
+		if(orbitRight)
+			velocity = glm::vec2(velocity.y, -velocity.x);
+		else
+			velocity = glm::vec2(-velocity.y, velocity.x);
+	}
 }
 
 void Enemy::rollbackPos()
 {
+	collided = true;
+	bounceTimer = 0;
 	orbitRight = !orbitRight;
 	Actor::rollbackPos();
 }

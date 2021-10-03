@@ -11,6 +11,8 @@ Map::Map(Render &render)
 	textures.insert(
 		std::pair<TextureTile, Tex>(TextureTile::Obstacle2, render.LoadTexture("textures/tiles/obstacle2.png")));
 	textures.insert(
+		std::pair<TextureTile, Tex>(TextureTile::Obstacle3, render.LoadTexture("textures/tiles/obstacle3.png")));
+	textures.insert(
 		std::pair<TextureTile, Tex>(TextureTile::Ground, render.LoadTexture("textures/tiles/ground.png")));
 	textures.insert(
 		std::pair<TextureTile, Tex>(TextureTile::LeftG, render.LoadTexture("textures/tiles/leftwalll.png")));
@@ -67,7 +69,7 @@ void Map::genMap(int width, int height, float difficulty)
 				setTile(Location{x, y}, TextureTile::Ground);
 			}
 		}
-	int obsCount = (width * height) / 50;
+	int obsCount = ((width * height) / 40) + (difficulty * 3);
 	while(obsCount > 0)
 	{
 		glm::vec2 loc = glm::vec2(
@@ -75,10 +77,13 @@ void Map::genMap(int width, int height, float difficulty)
 			random.PositiveReal() * height * TILE_HEIGHT);
 		if(!inWall(glm::vec4(loc.x, loc.y, 4, 4)))
 		{
-			if(random.PositiveReal() > 0.5)
+			auto num = random.PositiveReal();
+			if(num > 0.7)
 				setTile(Location{(int)(loc.x / TILE_WIDTH), (int)(loc.y / TILE_HEIGHT)}, TextureTile::Obstacle);
-			else
+			else if(num > 0.4)
 				setTile(Location{(int)(loc.x / TILE_WIDTH), (int)(loc.y / TILE_HEIGHT)}, TextureTile::Obstacle2);
+			else
+				setTile(Location{(int)(loc.x / TILE_WIDTH), (int)(loc.y / TILE_HEIGHT)}, TextureTile::Obstacle3);
 			obsCount--;
 		}
 	}
@@ -93,11 +98,11 @@ void Map::genMap(int width, int height, float difficulty)
 			break;
 		}
 	}
-	int enemyCount = difficulty;
+	int enemyCount = 1 + (difficulty * 0.6);
 	while(enemyCount > 0)
 	{
 		glm::vec2 loc = glm::vec2(
-			random.PositiveReal() * width * TILE_WIDTH,
+			random.PositiveReal() * width * TILE_WIDTH ,
 			random.PositiveReal() * height * TILE_HEIGHT);
 		if(!inWall(glm::vec4(loc.x, loc.y, 9, 9)) && !glm::distance(playerSpawn, loc) < 100)
 		{
@@ -157,6 +162,7 @@ LogicalTile Map::logicalFromTex(TextureTile tile)
 		case TextureTile::FarWall:
 		case TextureTile::Obstacle:
 		case TextureTile::Obstacle2:
+		case TextureTile::Obstacle3:
 			return LogicalTile::Wall;
 	}
 }

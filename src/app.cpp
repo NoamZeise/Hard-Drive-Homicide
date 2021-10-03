@@ -11,12 +11,15 @@ App::App()
 	if (!glfwInit())
 			throw std::runtime_error("failed to initialise glfw!");
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //using vulkan not openGL
-	mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, "Hard Drive Homocide", nullptr, nullptr);
-	if(!mWindow)
+	mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, "Hard Drive Homicide", nullptr, nullptr);
+	if(!mWindow) 
 	{
 		glfwTerminate();
 		throw std::runtime_error("failed to create glfw window!");
 	}
+	GLFWimage winIcon[1];
+	winIcon[0].pixels = stbi_load("textures/icon.png", &winIcon[0].width, &winIcon[0].height, 0, 4); //rgba channels 
+	glfwSetWindowIcon(mWindow, 1, winIcon);
 	if(FIXED_RATIO)
 		glfwSetWindowAspectRatio(mWindow, TARGET_WIDTH, TARGET_HEIGHT);
 	glfwSetWindowUserPointer(mWindow, this);
@@ -37,6 +40,7 @@ App::App()
 
 App::~App()
 {
+	delete title;
 	delete onePtcl;
 	delete zeroPtcl;
 	delete hp;
@@ -66,8 +70,7 @@ void App::loadAssets()
 	onePtcl = new Particle({0, 0}, mRender->LoadTexture("textures/particles/1.png"));
 	zeroPtcl = new Particle({0, 0}, mRender->LoadTexture("textures/particles/0.png"));
 	nextLevel();
-	msgManager.AddMessage("out of space again? This stupid thing! Since when have I become a slave to my own hard drive?");
-	msgManager.AddMessage("i've had it! I'm going in there and teaching it a lesson...");
+	title = new Title(*mRender);
 
 	mRender->endTextureLoad();
 }
@@ -99,16 +102,81 @@ void App::preUpdate()
 
 void App::update()
 {
-	msgManager.Update(timer, btn);
-	if(!msgManager.Active())
+	if(!title->isActive())
 	{
-		transitionUpdate();
-		mapUpdate();
-		playerUpdate();
-		enemyUpdate();
-		bulletUpdate();
-		particleUpdate();
-		collisionUpdate();
+		if(btn.Start())
+		{
+			transitionTimer = transitionDuration / 2;
+			title->Reset();
+		}
+		msgManager.Update(timer, btn);
+		if(!msgManager.Active())
+		{
+			if(level == 8 && !endless && !complete)
+			{
+				complete = true;
+				msgManager.AddMessage("yes! I've finally done it. I've cleared this piece of crap hard drive, no more cache, no more app installers, no more random zips.");
+				msgManager.AddMessage("Now I can install the next update to whatever game doesn't respect my storage enough that it copys the same model data 100 times across the program.");
+				msgManager.AddMessage("Game Complete, Thanks for playing!");
+			}
+			else if(level == 8 && !endless && complete)
+			{
+				complete = false;
+				enemies.clear();
+				player->Reset();
+				level = 0;
+				levelSize = STARTING_LEVEL_SIZE;
+				nextLevel();
+				title->Reset();
+			}
+			transitionUpdate();
+			mapUpdate();
+			playerUpdate();
+			enemyUpdate();
+			bulletUpdate();
+			particleUpdate();
+			collisionUpdate();
+		}
+	}
+	else
+	{
+		//menu update
+		title->Update(btn);
+		switch (title->getChoice())
+		{
+		case Title::Menu::Play:
+			if(endless || firstUpdate)
+			{
+				firstUpdate = false;
+				msgManager.AddMessage("out of space again? This stupid thing! Since when have I become a slave to my own hard drive?");
+				msgManager.AddMessage("How long do I work away trying to create space for the things I want to store, Just for some browser to pack gigabytes of useless cache and cookies into MY computer?");
+				msgManager.AddMessage("i've had it! I'm going in there and cleaning up myself...");
+				endless = false;
+				enemies.clear();
+				player->Reset();
+				level = 0;
+				levelSize = STARTING_LEVEL_SIZE;
+				nextLevel();
+			}
+			title->disable();
+			break;
+		case Title::Menu::Endless:
+		    if(!endless || firstUpdate)
+			{
+				firstUpdate = false;
+				endless = true;
+				enemies.clear();
+				player->Reset();
+				level = 0;
+				levelSize = STARTING_LEVEL_SIZE;
+				nextLevel();
+			}
+			title->disable();
+			break;
+		case Title::Menu::Exit:
+			glfwSetWindowShouldClose(mWindow, GLFW_TRUE);
+			break;
+		}
 	}
 }
 
@@ -125,6 +193,8 @@ void App::draw()
 	mRender->startDraw();
 
 	//TODO draw app	
+	if(!title->isActive())
+	{
 	auto pos = camera.getCameraOffset();
 	map.Draw(*mRender, glm::vec4(-pos.x, -pos.y, TARGET_WIDTH, TARGET_HEIGHT));
 	for(auto& b : bullets)
@@ -145,7 +215,9 @@ void App::draw()
 		transitionTex.ID);
 	}
 	msgManager.Draw(offset);
-
+	}
+	else
+		title->Draw(*mRender, camera.getCameraOffset());
 	mRender->endDraw();
 }
 
@@ -224,6 +296,7 @@ void App::mapUpdate()
 		}
 		else if(!toUpdate)
 		{
+
 			main.oneTime("sound/playerDeath.mp3", 0.5f);
 			transitionTimer = 0;
 			toUpdate = true;
@@ -259,8 +332,11 @@ void App::mapUpdate()
 
 void App::playerUpdate()
 {
+	if(!player->isRemoved())
+	{
 	player->Control(btn);
 	player->Update(timer);
+	}
 	if(transitionTimer > transitionDuration)
 	if(input.Buttons[GLFW_MOUSE_BUTTON_LEFT])
 	{
@@ -332,15 +408,14 @@ void App::collisionUpdate()
 				{
 					b.Damage(1);
 					e.Damage(1);
-					Emit(b.getPos());
-					Emit(b.getPos());
-					Emit(b.getPos());
+					for (int i = 0; i < 3; i++)
+						Emit(b.getPos(), glm::vec3(0.0, 0.7, 0.0), glm::vec3(0.0, 0.0, 0.0), 0.1);
 					main.oneTime("sound/enemyDmg.mp3", 0.9f);
 					if(e.isRemoved())
 					{
 						main.oneTime("sound/enemyDeath.mp3", 0.3f);
 						for (int i = 0; i < 20; i++)
-							Emit(b.getPos());
+							Emit(b.getPos(), glm::vec3(0.0, 0.8, 0.0), glm::vec3(0.0, 0.3, 0.0), 0.2);
 					}
 					
 				}
@@ -351,7 +426,13 @@ void App::collisionUpdate()
 				player->Damage(1);
 				b.Damage(1);
 				for (int i = 0; i < 20; i++)
-							Emit(b.getPos());
+							Emit(b.getPos(), glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 0.0), 0.1);
+				if(player->isRemoved())
+					for (int i = 0; i < 20; i++)
+					{
+							Emit(b.getPos(), glm::vec3(0.7, 0.0, 0.0), glm::vec3(0.3, 0.0, 0.0), 0.3);
+							Emit(b.getPos(), glm::vec3(0.7, 0.0, 0.0), glm::vec3(0.3, 0.0, 0.0), 0.2);
+					}
 				main.oneTime("sound/playerDmg.mp3", 0.5f);
 		}
 		
@@ -397,15 +478,48 @@ void App::AddBullet(Actor &actor, glm::vec2 destination, bool isPlayer)
 	bullets.back().setPosition(bPos);
 }
 
+void App::Emit(glm::vec2 source, glm::vec3 startCol, glm::vec3 endCol, float particleSpeed)
+{
+	float extra = 50;
+	auto camerapos = camera.getCameraOffset();
+	auto cameraRect = glm::vec4(-camerapos.x - extra, -camerapos.y - extra, TARGET_WIDTH + extra, TARGET_HEIGHT + extra);
+	if(!gamehelper::contains(source, cameraRect))
+		return;
+	//auto p = *onePtcl;
+	//if(random.PositiveReal() > 0.5)
+	auto p = *zeroPtcl;
+	p.setPosition(source);
+	p.startCol = startCol;
+	p.endCol = endCol;
+	p.setVelocity( gamehelper::relativeVel(source, 
+		glm::vec2(source.x + random.Real(), source.y + random.Real()), //random dir
+		random.PositiveReal() * particleSpeed) //speed
+	);
+	particles.push_back(p);
+}
+
 void App::Emit(glm::vec2 pos)
 {
-	auto p = *onePtcl;
-	if(random.PositiveReal() > 0.5)
-		p = *zeroPtcl;
-	p.setPosition(pos);
-	p.setVelocity( gamehelper::relativeVel(pos, 
-		glm::vec2(pos.x + random.Real(), pos.y + random.Real()), //random dir
-		random.PositiveReal() * 0.1) //speed
+	Emit(pos, glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.0, 0.0, 0.0), 0.1f);
+}
+
+void App::EmitTowards(glm::vec2 source, glm::vec2 destination, glm::vec3 startCol, glm::vec3 endCol, float particleSpeed)
+{
+	float extra = 50;
+	auto camerapos = camera.getCameraOffset();
+	auto cameraRect = glm::vec4(-camerapos.x - extra, -camerapos.y - extra, TARGET_WIDTH + extra, TARGET_HEIGHT + extra);
+	if(!gamehelper::contains(source, cameraRect))
+		return;
+	//auto p = *onePtcl;
+	//if(random.PositiveReal() > 0.5)
+	auto p = *zeroPtcl;
+	p.setPosition(source);
+	p.startCol = startCol;
+	p.endCol = endCol;
+	p.setLifespan(75);
+	p.setVelocity( gamehelper::relativeVel(source, 
+		glm::vec2(destination.x + (random.Real() * 10), destination.y + (random.Real() * 10)),
+		random.PositiveReal() * particleSpeed) //speed
 	);
 	particles.push_back(p);
 }
@@ -427,6 +541,13 @@ void App::nextLevel()
 	{
 		Enemy e = *enemy;
 		e.setPosition(s);
+		e.bulletCount = 1;
+		if(level > 3 && random.PositiveReal() > 0.6)
+			e.bulletCount = 2;
+		if(level > 5 && random.PositiveReal() > 0.8)
+			e.bulletCount = 3;
+		if(level > 6 && random.PositiveReal() > 0.9)
+			e.bulletCount = 4;
 		e.setDtoPlayer(100 + (random.Real() * 50));
 		e.setFireDelay((1000 - (level * 10)) + (random.Real() * 100), random.PositiveReal());
 		e.setBulletSpeed(0.05 + (level * 0.025) + random.Real() * 0.005);
@@ -471,10 +592,6 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
 			const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 			glfwSetWindowMonitor(window, NULL, 100, 100, app->mWindowWidth, app->mWindowHeight, mode->refreshRate);
 		}
-	}
-	if(key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-	{
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
 	}
 	if (key >= 0 && key < 1024)
 	{

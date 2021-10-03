@@ -14,6 +14,7 @@
 #include "framework/input.h"
 #include "framework/audio.h"
 #include "framework/vkhelper.h"
+#include "framework/stb_image.h"
 
 #include "game/_glm.h"
 #include "game/timer.h"
@@ -26,6 +27,7 @@
 #include "map.h"
 #include "sprite.h"
 #include "actors.h"
+#include "title.h"
 
 class App
 {
@@ -60,6 +62,8 @@ private:
 	void collisionUpdate();
 	void AddBullet(Actor &actor, glm::vec2 destination, bool isPlayer);
 	void Emit(glm::vec2 source);
+	void Emit(glm::vec2 source, glm::vec3 startCol, glm::vec3 endCol, float particleSpeed);
+	void EmitTowards(glm::vec2 source, glm::vec2 destination, glm::vec3 startCol, glm::vec3 endCol, float particleSpeed);
 	void nextLevel();
 	glm::vec2 correctedPos(glm::vec2 pos);
 	glm::vec2 correctedMouse();
@@ -94,11 +98,15 @@ private:
 
 	Tex transitionTex;
 	float transitionPos = -TARGET_HEIGHT;
-	float transitionDuration = 1000;
-	float transitionTimer = 500;
+	float transitionDuration = 700;
+	float transitionTimer = 350;
 	bool toUpdate = false;
+	bool complete = false;
+	bool endless = false;
+	bool firstUpdate = true;
 
 	Audio main;
+	Title* title;
 };
 
 #endif

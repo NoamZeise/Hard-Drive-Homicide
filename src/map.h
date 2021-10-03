@@ -33,6 +33,7 @@ enum class TextureTile
 	BLG,
 	Obstacle,
 	Obstacle2,
+	Obstacle3,
 };
 
 class Map

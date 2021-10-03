@@ -7,7 +7,8 @@ set(CMAKE_CXX_FLAGS "-O2 -std=c++11")
 
 set(CMAKE_EXE_LINKER_FLAGS "-v")
 
-project(2D-Vulkan-Environment VERSION 1.0)
+project(Hard-Drive-Homicide VERSION 1.0)
+
 
 
 #packages
@@ -27,26 +28,27 @@ endif()
 file(GLOB SOURCES src/*)
 file(GLOB FRAMEWORK src/framework/*)
 file(GLOB GAME src/game/*)
-add_executable(2D-Vulkan-Environment ${SOURCES}
+add_executable(Hard-Drive-Homicide ${SOURCES}
                                     ${FRAMEWORK}
-                                    ${GAME})
+                                    ${GAME}
+                                    icon.rc)
 
 
-
+set_target_properties(Hard-Drive-Homicide PROPERTIES OUTPUT_NAME "Hard-Drive-Homicide")
 #link
 if(UNIX)
-    target_include_directories(2D-Vulkan-Environment PUBLIC ${GLFW_INCLUDE_DIRS}
+    target_include_directories(Hard-Drive-Homicide PUBLIC ${GLFW_INCLUDE_DIRS}
                                                  PUBLIC ${VULKAN_INCLUDE_DIRS}
                                                  PUBLIC ${FREETYPE_INCLUDE_DIRS}
                                                  PUBLIC ${PROJECT_BINARY_DIR})
 
-    target_link_libraries(2D-Vulkan-Environment glfw)
-    target_link_libraries(2D-Vulkan-Environment Vulkan::Vulkan)
-    target_link_libraries(2D-Vulkan-Environment ${FREETYPE_LIBRARIES})
+    target_link_libraries(Hard-Drive-Homicide glfw)
+    target_link_libraries(Hard-Drive-Homicide Vulkan::Vulkan)
+    target_link_libraries(Hard-Drive-Homicide ${FREETYPE_LIBRARIES})
 else()
-    target_include_directories(2D-Vulkan-Environment PUBLIC D:/noam4/Libraries/VS/include)
-    target_link_libraries(2D-Vulkan-Environment libs/glfw3)
-    target_link_libraries(2D-Vulkan-Environment Winmm)
-    target_link_libraries(2D-Vulkan-Environment libs/freetyped)
-    target_link_libraries(2D-Vulkan-Environment libs/vulkan-1)
+    target_include_directories(Hard-Drive-Homicide PUBLIC D:/noam4/Libraries/VS/include)
+    target_link_libraries(Hard-Drive-Homicide libs/glfw3)
+    target_link_libraries(Hard-Drive-Homicide Winmm)
+    target_link_libraries(Hard-Drive-Homicide libs/freetyped)
+    target_link_libraries(Hard-Drive-Homicide libs/vulkan-1)
 endif()
