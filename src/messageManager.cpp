@@ -9,7 +9,7 @@ MessageManager::~MessageManager()
 void MessageManager::LoadTextures(Render *render)
 {
 	this->render = render;
-	boxTex = render->LoadTexture("textures/messageBox.png");
+	boxTex = render->LoadTexture("textures/messagebox.png");
 	font = render->LoadFont("textures/dogicapixel.otf");
 }
 
@@ -19,7 +19,7 @@ void MessageManager::Update(Timer &timer, Btn &btn)
 	{
 		messages.erase(messages.begin());
 	}
-		
+
 }
 
 void MessageManager::Draw(glm::vec2 offset)
@@ -32,7 +32,7 @@ void MessageManager::Draw(glm::vec2 offset)
 		{
 			if(i == 0)
 				render->DrawSquare(glm::vec4(0 - offset.x, 0 - offset.y, boxTex.dim.x, boxTex.dim.y), 0, boxTex.ID);
-			render->DrawString(font, messages[0].line[i], 
+			render->DrawString(font, messages[0].line[i],
 				glm::vec2(MSG_BOX_OFFSET.x - offset.x, (TARGET_HEIGHT - MSG_BOX_OFFSET.y) + ( i * LINE_SPACING) - offset.y),
 			 	TEXT_SIZE, 0, glm::vec4(1, 1, 1, 1));
 		}

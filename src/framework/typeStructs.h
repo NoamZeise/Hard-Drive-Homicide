@@ -160,8 +160,10 @@ struct DescriptorSets
 
 struct Tex
 {
-	unsigned int ID = 0;
-	glm::vec2 dim = glm::vec2(0, 0);
+	Tex() { ID = 0; dim = glm::vec2(0, 0); }
+	Tex(unsigned int texID, glm::vec2 texDim) { ID = texID; dim = texDim; }
+	unsigned int ID;
+	glm::vec2 dim;
 };
 
 

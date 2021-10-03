@@ -52,7 +52,13 @@ public:
 private:
 	Random random;
 
-	struct Location { int x = 0; int y = 0;};
+	struct Location
+	{
+		Location() { x = 0; y = 0; }
+		Location(int xPos, int yPos) { x = xPos; y = yPos; }
+		int x;
+		int y;
+	};
 	int width = 0;
 	int height = 0;
 	std::map<TextureTile, Tex> textures;

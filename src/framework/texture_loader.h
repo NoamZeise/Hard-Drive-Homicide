@@ -21,6 +21,15 @@ const int MAX_TEXTURES_SUPPORTED = 200;//match in shader
 
 struct TempTexture
 {
+	TempTexture(std::string Texpath)
+	{
+		path = Texpath;
+		width = 0;
+		height = 0;
+		nrChannels = 0;
+		format = VK_FORMAT_R8G8B8A8_UNORM;
+		fileSize = 0;
+	}
 	std::string path;
 	unsigned char* pixelData;
 	int width;

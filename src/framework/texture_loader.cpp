@@ -21,7 +21,7 @@ TextureLoader::~TextureLoader()
 
 Tex TextureLoader::loadTexture(std::string path)
 {
-	texToLoad.push_back({ path });
+	texToLoad.push_back(TempTexture(path));
 	TempTexture* tex = &texToLoad.back();
 	tex->pixelData = stbi_load(tex->path.c_str(), &tex->width, &tex->height, &tex->nrChannels, 0);
 	if (!tex->pixelData)
@@ -58,12 +58,12 @@ Tex TextureLoader::loadTexture(std::string path)
 	default:
 		throw std::runtime_error("texture at " + path + " has an unsupported number of channels");
 	}
-	return Tex{(unsigned int)(texToLoad.size() - 1), glm::vec2(tex->width, tex->height)};
+	return Tex((unsigned int)(texToLoad.size() - 1), glm::vec2(tex->width, tex->height));
 }
 
 uint32_t TextureLoader::loadTexture(unsigned char* data, int width, int height, int nrChannels)
 {
-	texToLoad.push_back({ "NULL" });
+	texToLoad.push_back(TempTexture("NULL"));
 	TempTexture* tex = &texToLoad.back();
 	tex->pixelData = data;
 	tex->width = width;

@@ -45,29 +45,27 @@ void Map::genMap(int width, int height, float difficulty)
 		for(int x = 0; x < width; x++)
 		{
 			if(x == 0 || x == width - 1 || y == 0 || y == height - 1)
-				setTile(Location{x, y}, TextureTile::FarWall);
+				setTile(Location(x, y), TextureTile::FarWall);
 			else if(x == 1 || x == width - 2 || y == 1 || y == height - 2)
-				setTile(Location{x, y}, TextureTile::Wall);
+				setTile(Location(x, y), TextureTile::Wall);
 			else if(x == 2 && y == 2)
-				setTile(Location{x, y}, TextureTile::TLG);
+				setTile(Location(x, y), TextureTile::TLG);
 			else if(x == width - 3 && y == 2)
-				setTile(Location{x, y}, TextureTile::TRG);
+				setTile(Location(x, y), TextureTile::TRG);
 			else if(x == 2 && y == height - 3)
-				setTile(Location{x, y}, TextureTile::BLG);
+				setTile(Location(x, y), TextureTile::BLG);
 			else if(x == width - 3 && y == height - 3)
-				setTile(Location{x, y}, TextureTile::BRG);
+				setTile(Location(x, y), TextureTile::BRG);
 			else if(y == 2)
-				setTile(Location{x, y}, TextureTile::TopG);
+				setTile(Location(x, y), TextureTile::TopG);
 			else if(x == 2)
-				setTile(Location{x, y}, TextureTile::LeftG);
+				setTile(Location(x, y), TextureTile::LeftG);
 			else if(x == width - 3)
-				setTile(Location{x, y}, TextureTile::RightG);
+				setTile(Location(x, y), TextureTile::RightG);
 			else if(y == height - 3)
-				setTile(Location{x, y}, TextureTile::BotG);
+				setTile(Location(x, y), TextureTile::BotG);
 			else
-			{
-				setTile(Location{x, y}, TextureTile::Ground);
-			}
+				setTile(Location(x, y), TextureTile::Ground);
 		}
 	int obsCount = ((width * height) / 40) + (difficulty * 3);
 	while(obsCount > 0)
@@ -117,9 +115,9 @@ void Map::Draw(Render &render, glm::vec4 cameraRect)
 	for(int y = 0; y < height; y++)
 		for(int x = 0; x < width; x++)
 		{
-			glm::vec4 tileRect = getTileRect(Location{x, y});
+			glm::vec4 tileRect = getTileRect(Location(x, y));
 			if(gamehelper::colliding(cameraRect, tileRect))
-				render.DrawSquare( tileRect, 0, textures[getTile(Location{x, y})].ID);
+				render.DrawSquare( tileRect, 0, textures[getTile(Location(x, y))].ID);
 		}
 }
 
@@ -165,6 +163,7 @@ LogicalTile Map::logicalFromTex(TextureTile tile)
 		case TextureTile::Obstacle3:
 			return LogicalTile::Wall;
 	}
+	return LogicalTile::Empty_Tile;
 }
 
 TextureTile Map::getTile(Location location)

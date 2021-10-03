@@ -27,7 +27,7 @@ class Item : public Sprite
 public:
 	enum Type
 	{
-		None,
+		NoType,
 		HP,
 		Shoot,
 		Speed,
