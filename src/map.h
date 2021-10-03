@@ -12,14 +12,14 @@
 
 enum class LogicalTile
 {
-	None,
+	Empty_Tile,
 	Ground,
 	Wall
 };
 
 enum class TextureTile
 {
-	None,
+	Empty_Tile,
 	Ground,
 	Wall,
 	FarWall,
@@ -61,7 +61,7 @@ private:
 	LogicalTile logicalFromTex(TextureTile tile);
 	TextureTile getTile(Location location);
 	void setTile(Location location, TextureTile tile);
-	bool Map::valid(Location location);
+	bool valid(Location location);
 	glm::vec4 getTileRect(Location location);
 };
 

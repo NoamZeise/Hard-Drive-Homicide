@@ -126,7 +126,7 @@ void Map::Draw(Render &render, glm::vec4 cameraRect)
 bool Map::inWall(glm::vec4 rect)
 {
 	//get location of each point of rect
-	Location 
+	Location
 		tl{(int)(rect.x / TILE_WIDTH), 			  (int)(rect.y / TILE_WIDTH)},
 		tr{(int)((rect.x + rect.z) / TILE_WIDTH), (int)(rect.y / TILE_WIDTH)},
 		bl{(int)(rect.x / TILE_WIDTH),			  (int)((rect.y + rect.w) / TILE_WIDTH)},
@@ -144,8 +144,8 @@ LogicalTile Map::logicalFromTex(TextureTile tile)
 {
 	switch(tile)
 	{
-		case TextureTile::None:
-			return LogicalTile::None;
+		case TextureTile::Empty_Tile:
+			return LogicalTile::Empty_Tile;
 
 		case TextureTile::Ground:
 		case TextureTile::LeftG:
@@ -169,8 +169,8 @@ LogicalTile Map::logicalFromTex(TextureTile tile)
 
 TextureTile Map::getTile(Location location)
 {
-	if (!valid(location)) 
-		return TextureTile::None;
+	if (!valid(location))
+		return TextureTile::Empty_Tile;
 	return map[(location.y * width) + location.x];
 }
 
@@ -190,4 +190,3 @@ bool Map::valid(Location location)
 {
 	return !(location.x > width || location.x < 0 || location.y  > height || location.y < 0);
 }
-
