@@ -10,6 +10,27 @@ void Actor::Update(Timer &timer)
 	position.y += velocity.y * elapsed;
 }
 
+void Actor::Draw(Render &render)
+{
+	if(!isRemoved())
+	{
+	float hpPercent = (float)health / (float)maxHealth;
+	glm::vec4 colour = glm::vec4(1, 1, 1, 1); //white
+	for(int i = 0 ; i < texture.dim.x; i++)
+	{
+		if(i > hpPercent * texture.dim.x)
+			colour = glm::vec4(0.8, 0.2, 0.1, 1); //red
+
+		render.DrawSquare(
+			glm::vec4 (position.x + i, position.y + texture.dim.y + 2, 1, 2),
+			0,
+			colour,
+			glm::vec4(0, 0, 1, 1), //texoffset
+			texture.ID);
+	}
+	Sprite::Draw(render);
+	}
+}
 
 bool Actor::Shoot()
 {
@@ -48,14 +69,14 @@ void Player::Update(Timer &timer)
 		acceleration.y = -PLAYER_DECELERATION;
 	
 	velocity += acceleration;
-	if(velocity.x < -MAX_SPEED)
-		velocity.x = -MAX_SPEED;
-	if(velocity.x > MAX_SPEED)
-		velocity.x = MAX_SPEED;
-	if(velocity.y < -MAX_SPEED)
-		velocity.y = -MAX_SPEED;
-	if(velocity.y > MAX_SPEED)
-		velocity.y = MAX_SPEED;
+	if(velocity.x < -maxSpeed)
+		velocity.x = -maxSpeed;
+	if(velocity.x > maxSpeed)
+		velocity.x = maxSpeed;
+	if(velocity.y < -maxSpeed)
+		velocity.y = -maxSpeed;
+	if(velocity.y > maxSpeed)
+		velocity.y = maxSpeed;
 
 	velocity.x *= FRICTION;
 	velocity.y *= FRICTION;
@@ -73,6 +94,34 @@ void Player::Control(Btn &btn)
 		acceleration.x = PLAYER_ACCELERATION;
 	if(btn.press.Left())
 		acceleration.x = -PLAYER_ACCELERATION;
+}
+
+void Player::Reset()
+{
+	bulletSpeed = INITIAL_BULLET_SPEED;
+	shootDelay = INITIAL_SHOOT_DELAY;
+	health = INITIAL_MAX_HEALTH;
+	maxHealth = INITIAL_MAX_HEALTH;
+	maxSpeed = INITIAL_MAX_SPEED;
+}
+
+void Player::Upgrade(Item::Type type)
+{
+	switch(type)
+	{
+	case Item::Type::HP:
+		health++;
+		if(health > maxHealth)
+			maxHealth = health;
+		break;
+	case Item::Type::Shoot:
+		shootDelay *= 0.98f;
+		bulletSpeed += 0.05f;
+		break;
+	case Item::Type::Speed:
+		maxSpeed *= 1.1f;
+		break;
+	}
 }
 
 

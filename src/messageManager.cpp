@@ -15,21 +15,27 @@ void MessageManager::LoadTextures(Render *render)
 
 void MessageManager::Update(Timer &timer, Btn &btn)
 {
-	if(btn.B())
-		currentMsg = {};
+	if(btn.ABXY() && messages.size() > 0)
+	{
+		messages.erase(messages.begin());
+	}
+		
 }
 
-void MessageManager::Draw()
+void MessageManager::Draw(glm::vec2 offset)
 {
 	if(render == nullptr)
 		throw std::runtime_error("Message Manager: can't draw before LoadTextures has been called");
-	for(int i = 0; i < currentMsg.line.size(); i++)
+	if(messages.size() > 0)
 	{
-		if(i == 0)
-			render->DrawSquare(glm::vec4(0, 0, boxTex.dim.x, boxTex.dim.y), 0, boxTex.ID);
-		render->DrawString(font, currentMsg.line[i], 
-			glm::vec2(MSG_BOX_OFFSET.x, (TARGET_HEIGHT - MSG_BOX_OFFSET.y) + ( i * LINE_SPACING)),
-		 	TEXT_SIZE, 0, glm::vec4(1, 1, 1, 1));
+		for(int i = 0; i < messages[0].line.size(); i++)
+		{
+			if(i == 0)
+				render->DrawSquare(glm::vec4(0 - offset.x, 0 - offset.y, boxTex.dim.x, boxTex.dim.y), 0, boxTex.ID);
+			render->DrawString(font, messages[0].line[i], 
+				glm::vec2(MSG_BOX_OFFSET.x - offset.x, (TARGET_HEIGHT - MSG_BOX_OFFSET.y) + ( i * LINE_SPACING) - offset.y),
+			 	TEXT_SIZE, 0, glm::vec4(1, 1, 1, 1));
+		}
 	}
 }
 
@@ -39,14 +45,14 @@ void MessageManager::AddMessage(std::string text)
 		throw std::runtime_error("Message Manager: can't add message before LoadTextures has been called");
 	std::string msgLine = "";
 	std::string lastWord = "";
-	currentMsg.line.clear();
+	messages.push_back({});
 	for(int i = 0; i < text.length(); i++ )
 	{
 		if(text[i] == ' ')
 		{
 			if(render->MeasureString(font, msgLine + lastWord, TEXT_SIZE) > MSG_BOX_WIDTH)
 			{
-				currentMsg.line.push_back(msgLine);
+				messages.back().line.push_back(msgLine);
 				msgLine = lastWord.append(" ");
 			}
 			else
@@ -60,5 +66,5 @@ void MessageManager::AddMessage(std::string text)
 			lastWord += text[i];
 		}
 	}
-	currentMsg.line.push_back(msgLine.append(lastWord));
+	messages.back().line.push_back(msgLine.append(lastWord));
 }

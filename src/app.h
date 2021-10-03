@@ -14,13 +14,15 @@
 #include "framework/input.h"
 #include "framework/audio.h"
 #include "framework/vkhelper.h"
+
 #include "game/_glm.h"
 #include "game/timer.h"
 #include "game/simpleInput.h"
-#include "messageManager.h"
 #include "game/camera.h"
 #include "game/gamehelper.h"
 #include "game/gameRandom.h"
+
+#include "messageManager.h"
 #include "map.h"
 #include "sprite.h"
 #include "actors.h"
@@ -49,11 +51,15 @@ public:
 private:
 	void preUpdate();
 	void postUpdate();
+	void transitionUpdate();
+	void mapUpdate();
 	void playerUpdate();
 	void enemyUpdate();
+	void particleUpdate();
 	void bulletUpdate();
 	void collisionUpdate();
 	void AddBullet(Actor &actor, glm::vec2 destination, bool isPlayer);
+	void Emit(glm::vec2 source);
 	void nextLevel();
 	glm::vec2 correctedPos(glm::vec2 pos);
 	glm::vec2 correctedMouse();
@@ -76,9 +82,23 @@ private:
 	Enemy* enemy;
 	std::vector<Bullet> bullets;
 	Bullet* bullet;
-	std::vector<Sprite> drops;
+	float dropDelay = 5000;
+	float dropTimer = 0;
+	std::vector<Item> drops;
 	Item* hp;
-	Item* upgrade;
+	Item* shootU;
+	Item* speedU;
+	std::vector<Particle> particles;
+	Particle* onePtcl;
+	Particle* zeroPtcl;
+
+	Tex transitionTex;
+	float transitionPos = -TARGET_HEIGHT;
+	float transitionDuration = 1000;
+	float transitionTimer = 500;
+	bool toUpdate = false;
+
+	Audio main;
 };
 
 #endif

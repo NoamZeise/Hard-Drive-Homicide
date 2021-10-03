@@ -44,7 +44,7 @@ public:
 		test(keys[GLFW_KEY_SPACE],	SimpleButton::A);
 		test(keys[GLFW_KEY_COMMA], SimpleButton::B);
 		test(keys[GLFW_KEY_PERIOD], SimpleButton::X);
-		test(keys[GLFW_KEY_PERIOD], SimpleButton::Y);
+		test(keys[GLFW_KEY_Z], SimpleButton::Y);
 		test(keys[GLFW_KEY_ENTER],  SimpleButton::Select);
 		test(keys[GLFW_KEY_ESCAPE], SimpleButton::Start);
 	}
@@ -87,6 +87,11 @@ struct Btn
 	bool Y() { return press.Y() && !prev.Y(); }
 	bool Select() { return press.Select() && !prev.Select(); }
 	bool Start() { return press.Start() && !prev.Start(); }
+
+	bool ABXY()
+	{
+		return A() || B() || X() || Y();
+	}
 };
 
 

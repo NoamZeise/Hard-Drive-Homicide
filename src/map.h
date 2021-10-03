@@ -46,6 +46,8 @@ public:
 	void Draw(Render &render, glm::vec4 cameraRect);
 	glm::vec2 playerSpawn{0, 0};
 	std::vector<glm::vec2> enemySpawns;
+	int getWidth() { return width; }
+	int getHeight() { return height; }
 private:
 	Random random;
 

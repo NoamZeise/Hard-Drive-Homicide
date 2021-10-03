@@ -12,7 +12,7 @@
 #include "game/simpleInput.h"
 #include "game/consts.h"
 
-struct message
+struct Message
 {
 	std::vector<std::string> line; 
 };
@@ -24,10 +24,10 @@ public:
 	MessageManager() {}
 	~MessageManager();
 	void LoadTextures(Render *render);
-	void Draw();
+	void Draw(glm::vec2 offset);
 	void Update(Timer &timer, Btn &btn);
 	void AddMessage(std::string text);
-	bool Active() { return currentMsg.line.size() > 0;}
+	bool Active() { return messages.size() > 0;}
 
 private:
 	Tex boxTex;
@@ -37,7 +37,7 @@ private:
 	const float MSG_BOX_WIDTH = 190;
 	const int TEXT_SIZE = 7;
 	const int LINE_SPACING = 10;
-	message currentMsg;
+	std::vector<Message> messages;
 };
 
 
