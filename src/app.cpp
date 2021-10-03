@@ -281,6 +281,7 @@ void App::enemyUpdate()
 		if(transitionTimer > transitionDuration)
 		if(enemies[i].Shoot())
 		{
+			main.oneTime("sound/enemyShoot.mp3", 0.2f);
 			for(int b = 0; b < enemies[i].bulletCount; b++)
 			{
 				if(b == 0)
@@ -337,7 +338,7 @@ void App::collisionUpdate()
 					main.oneTime("sound/enemyDmg.mp3", 0.9f);
 					if(e.isRemoved())
 					{
-						main.oneTime("sound/enemyDeath.mp3", 0.5f);
+						main.oneTime("sound/enemyDeath.mp3", 0.3f);
 						for (int i = 0; i < 20; i++)
 							Emit(b.getPos());
 					}
