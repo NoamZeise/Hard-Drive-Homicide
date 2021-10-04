@@ -93,8 +93,8 @@ protected:
 class Particle : public Bullet
 {
 public:
-	Particle(glm::vec2 pos, Tex texture): Bullet(pos, texture) 
-	{ 
+	Particle(glm::vec2 pos, Tex texture): Bullet(pos, texture)
+	{
 		health = 1;
 		lifespan = 150;
 	}
